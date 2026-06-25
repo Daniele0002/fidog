@@ -236,8 +236,37 @@ const storage = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function navigateTo(hash) {
+  closeMobileMenu();
   window.location.hash = hash;
 }
+
+function toggleMobileMenu() {
+  const overlay = document.getElementById('mobile-nav-overlay');
+  if (!overlay) return;
+  const icon = document.getElementById('mobile-menu-icon');
+  const isOpen = overlay.classList.contains('open');
+  if (isOpen) {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if (icon) icon.setAttribute('data-lucide', 'menu');
+  } else {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (icon) icon.setAttribute('data-lucide', 'x');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeMobileMenu() {
+  const overlay = document.getElementById('mobile-nav-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  const icon = document.getElementById('mobile-menu-icon');
+  if (icon) icon.setAttribute('data-lucide', 'menu');
+  if (window.lucide) window.lucide.createIcons();
+}
+
 
 function handleRouting() {
   const hash = window.location.hash || "#home";
