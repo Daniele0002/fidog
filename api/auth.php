@@ -31,7 +31,7 @@ if ($action === 'login') {
     $result = mysqli_query($conn,
         "SELECT id, first_name, last_name, username, email, ruolo
          FROM user
-         WHERE username = '$username' AND password = '$password' AND enable = 1
+         WHERE (username = '$username' OR email = '$username') AND password = '$password' AND enable = 1
          LIMIT 1"
     );
 

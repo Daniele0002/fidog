@@ -1643,6 +1643,11 @@ function renderLogin() {
         <h2 style="font-family: var(--font-headings); font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--dark);">Accedi a FIDOG</h2>
         <p style="color: var(--dark-gray); margin-bottom: 32px; font-size: 15px;">Inserisci le tue credenziali per accedere al tuo profilo e gestire le adozioni.</p>
         
+        <div id="login-error" style="display: none; align-items: center; gap: 10px; background-color: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 24px; font-size: 14px; text-align: left; font-weight: 500;">
+          <i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #DC2626; flex-shrink: 0;"></i>
+          <span id="login-error-text"></span>
+        </div>
+
         <form id="login-form" onsubmit="handleLoginSubmit(event)" style="text-align: left;">
           <div class="form-group">
             <label for="login-email">Indirizzo Email</label>
@@ -2560,6 +2565,12 @@ async function handleLoginSubmit(event) {
   event.preventDefault();
   const username = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
+  const errorContainer = document.getElementById("login-error");
+  const errorText = document.getElementById("login-error-text");
+
+  if (errorContainer) {
+    errorContainer.style.display = "none";
+  }
 
   try {
     const response = await fetch("api/auth.php", {
@@ -2586,17 +2597,25 @@ async function handleLoginSubmit(event) {
       updateAuthUI();
       renderCurrentView();
     } else {
-      alert("Errore di accesso: " + (result.error || "Credenziali errate"));
+      const errMsg = result.error || "Credenziali errate o account disattivato.";
+      if (errorContainer && errorText) {
+        errorText.textContent = errMsg;
+        errorContainer.style.display = "flex";
+        if (window.lucide) window.lucide.createIcons();
+      } else {
+        alert("Errore di accesso: " + errMsg);
+      }
     }
   } catch (error) {
     console.error("Errore durante il login con il database:", error);
-    alert("Impossibile connettersi al database di autenticazione. Utilizzo login locale offline.");
-    
-    // Offline fallback for testing when DB is not running
-    state.isLoggedIn = true;
-    storage.saveLoginState();
-    updateAuthUI();
-    renderCurrentView();
+    const connectionErrMsg = "Impossibile connettersi al server di autenticazione. Verifica le impostazioni del database o riprova più tardi.";
+    if (errorContainer && errorText) {
+      errorText.textContent = connectionErrMsg;
+      errorContainer.style.display = "flex";
+      if (window.lucide) window.lucide.createIcons();
+    } else {
+      alert("Errore di connessione: " + connectionErrMsg);
+    }
   }
 }
 
