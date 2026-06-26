@@ -13,7 +13,7 @@ const BREEDS_DB = [
     name: "Golden Retriever",
     subtitle: "Il compagno di vita per eccellenza, un concentrato di pura gioia e lealtà.",
     description: "I Golden Retriever sono rinomati per la loro intelligenza, dolcezza e tolleranza. Sono ottimi compagni di famiglia, estremamente socievoli con le persone e con gli altri animali. Amano l'acqua, il gioco e hanno una naturale attitudine al riporto.",
-    energy: "Moderato",
+    energy: "Energia media",
     size: "Grande",
     life: "10-12 anni",
     temperament: "Intelligente, gentile, fidato, socievole",
@@ -25,7 +25,7 @@ const BREEDS_DB = [
     name: "Border Collie",
     subtitle: "Energia pura ed intelligenza straordinaria al servizio del lavoro e del gioco.",
     description: "Il Border Collie è considerato il cane più intelligente del mondo. Estremamente attivo, ha bisogno di stimoli fisici e mentali continui. Eccelle in discipline come l'agility dog e lo sheepdog.",
-    energy: "Alto",
+    energy: "Energia alta",
     size: "Media",
     life: "12-15 anni",
     temperament: "Intelligente, energico, attento, tenace",
@@ -49,7 +49,7 @@ const BREEDS_DB = [
     name: "Labrador Retriever",
     subtitle: "Affettuoso, giocoso ed instancabile nuotatore, perfetto per la famiglia.",
     description: "Il Labrador è una delle razze più popolari al mondo. Dolce, desideroso di compiacere e molto attivo, eccelle come cane da compagnia, da terapia, soccorso in acqua e cane guida per non vedenti.",
-    energy: "Alto",
+    energy: "Energia alta",
     size: "Grande",
     life: "10-12 anni",
     temperament: "Gentile, intelligente, desideroso di compiacere, amichevole",
@@ -61,7 +61,7 @@ const BREEDS_DB = [
     name: "Cocker Spaniel",
     subtitle: "Occhi dolci e temperamento allegro in una taglia compatta.",
     description: "Il Cocker Spaniel Inglese è famoso per le sue lunghe orecchie setose e il suo carattere costantemente allegro. È un cane da caccia ma anche un dolcissimo compagno casalingo che ama correre all'aria aperta.",
-    energy: "Moderato",
+    energy: "Energia media",
     size: "Piccola",
     life: "12-15 anni",
     temperament: "Allegro, amichevole, giocherellone, affettuoso",
@@ -73,7 +73,7 @@ const BREEDS_DB = [
     name: "Meticcio",
     subtitle: "Unico, irripetibile e pronto a donare un amore senza confini.",
     description: "I cani meticci uniscono le migliori qualità di diverse razze, rendendoli spesso robusti, intelligenti ed estremamente adattabili. Ogni meticcio ha un carattere unico e speciale tutto da scoprire.",
-    energy: "Moderato",
+    energy: "Energia media",
     size: "Media",
     life: "12-16 anni",
     temperament: "Affettuoso, leale, riconoscente, unico",
@@ -176,7 +176,13 @@ const DOGS_DB = [
 const state = {
   currentView: "home",
   selectedBreedId: null,
-  favorites: ["dog-rocky", "dog-luna", "dog-briciola", "dog-kaiser"],
+  selectedDogId: null,
+  favorites: ["13", "14", "15", "37"],
+  isLoggedIn: true,
+  breeds: [...BREEDS_DB],
+  breedsPage: 1,
+  breedsPerPage: 12,
+  filteredBreeds: [],
   userProfile: {
     name: "Dani",
     location: "Milano, Italia",
@@ -213,7 +219,16 @@ const storage = {
   },
   loadFavorites: () => {
     const saved = localStorage.getItem("fidog_favorites");
-    if (saved) state.favorites = JSON.parse(saved);
+    if (saved) {
+      let loaded = JSON.parse(saved);
+      loaded = loaded.filter(id => !String(id).startsWith("dog-"));
+      if (loaded.length > 0) {
+        state.favorites = loaded;
+      } else {
+        state.favorites = ["13", "14", "15", "37"];
+        storage.saveFavorites();
+      }
+    }
   },
   saveProfile: () => {
     localStorage.setItem("fidog_profile", JSON.stringify(state.userProfile));
@@ -228,6 +243,13 @@ const storage = {
   loadPartnerDogs: () => {
     const saved = localStorage.getItem("fidog_partner_dogs");
     if (saved) state.partnerDogs = JSON.parse(saved);
+  },
+  saveLoginState: () => {
+    localStorage.setItem("fidog_logged_in", JSON.stringify(state.isLoggedIn));
+  },
+  loadLoginState: () => {
+    const saved = localStorage.getItem("fidog_logged_in");
+    if (saved !== null) state.isLoggedIn = JSON.parse(saved);
   }
 };
 
@@ -269,7 +291,12 @@ function closeMobileMenu() {
 
 
 function handleRouting() {
-  const hash = window.location.hash || "#home";
+  let hash = window.location.hash || "#home";
+  
+  if (hash === "#cani") {
+    window.location.hash = "#razze";
+    return;
+  }
   
   // Reset questionnaire state when navigating away
   if (!hash.startsWith("#questionario")) {
@@ -281,11 +308,19 @@ function handleRouting() {
   if (hash.startsWith("#dettaglio/")) {
     state.currentView = "dettaglio";
     state.selectedBreedId = hash.split("/")[1];
+    state.selectedDogId = null;
+  } else if (hash.startsWith("#cane/")) {
+    state.currentView = "cane";
+    const dogVal = hash.split("/")[1];
+    state.selectedDogId = isNaN(dogVal) ? dogVal : parseInt(dogVal, 10);
+    state.selectedBreedId = null;
   } else {
     state.currentView = hash.replace("#", "");
     state.selectedBreedId = null;
+    state.selectedDogId = null;
   }
 
+  window.scrollTo(0, 0);
   updateHeaderNavLinks();
   renderCurrentView();
 }
@@ -308,7 +343,6 @@ function updateHeaderNavLinks() {
 const viewContainer = document.getElementById("app-view");
 
 function renderCurrentView() {
-  window.scrollTo(0, 0);
   let html = "";
 
   switch (state.currentView) {
@@ -320,6 +354,9 @@ function renderCurrentView() {
       break;
     case "dettaglio":
       html = renderDettaglio();
+      break;
+    case "cane":
+      html = renderCaneDetail();
       break;
     case "chisiamo":
       html = renderChiSiamo();
@@ -384,7 +421,7 @@ function renderHome() {
       </section>
 
       <!-- Steps Section: A passo di zampa -->
-      <section class="steps-section">
+      <section class="steps-section" id="steps-section">
         <div class="section-title-container">
           <h2>A passo di zampa</h2>
           <p>Quattro semplici passi per accogliere un nuovo membro nella tua famiglia in totale serenità.</p>
@@ -502,31 +539,50 @@ function renderHome() {
 
 function renderDogCard(dog) {
   const isFav = state.favorites.includes(dog.id);
-  const badgeClass = dog.status === "DISPONIBILE" ? "badge-green" : "badge-orange";
+  const statusLabel = dog.status === "DISPONIBILE" ? "Disponibile" : dog.status === "ADOTTATO" ? "Adottato" : "In Corso";
+  const badgeClass = dog.status === "DISPONIBILE" ? "badge-green" : dog.status === "ADOTTATO" ? "badge-orange" : "badge-yellow";
   
   return `
     <div class="dog-card" data-id="${dog.id}">
       <div class="dog-image-container">
         <img src="${dog.image}" alt="${dog.name}" />
-        <span class="badge ${badgeClass} dog-status-badge">${dog.status}</span>
+        <div class="dog-card-badge-container">
+          <span class="badge ${badgeClass}">${statusLabel}</span>
+          <span class="badge badge-gray">${dog.age}</span>
+        </div>
         <button class="dog-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${dog.id}', event)">
           <i data-lucide="heart" style="width:18px; height:18px;"></i>
         </button>
       </div>
       <div class="dog-info">
-        <div class="dog-meta-top">
+        <div class="dog-meta-top" style="display:flex; justify-content:space-between; align-items:center;">
           <span class="dog-name">${dog.name}</span>
-          <span class="dog-age">${dog.age}</span>
+          <span class="dog-card-location">
+            <i data-lucide="map-pin"></i>
+            ${dog.citta || dog.location.split(' ')[0]}
+          </span>
         </div>
-        <span class="dog-breed-label">${dog.breedName}</span>
-        <div class="dog-tags">
-          ${dog.tags.map(t => `<span class="badge badge-gray">${t}</span>`).join("")}
+        <span class="dog-breed-label" style="display:block; margin-top:2px;">${dog.breedName}</span>
+        <div class="dog-tags" style="margin-top: 8px;">
+          ${dog.tags.map(t => `<span class="badge badge-gray" style="font-size: 10px; padding: 4px 10px; text-transform: uppercase;">${t}</span>`).join("")}
         </div>
-        <div class="dog-location">
-          <i data-lucide="map-pin" style="width:14px; height:14px;"></i>
-          <span>${dog.location}</span>
+        <p style="color:var(--dark-gray); font-size:14px; margin-top:12px; line-height:1.5;">
+          ${dog.storia ? (dog.storia.length > 90 ? dog.storia.substring(0, 90) + '...' : dog.storia) : 'Un amico adorabile e affettuoso.'}
+        </p>
+        <div class="dog-card-shelter" style="margin-top: 12px;">
+          <i data-lucide="home"></i>
+          <span>${dog.nomeCanile || dog.nome_canile || "Canile Partner"}</span>
         </div>
-        <button class="btn btn-primary dog-view-profile-btn" onclick="navigateTo('#dettaglio/${dog.breedId || 'meticcio'}')">Visualizza Razza</button>
+        
+        ${dog.status === "DISPONIBILE" ? `
+          <button class="btn btn-primary dog-card-btn" style="width:100%; margin-top: 16px;" onclick="navigateTo('#cane/${dog.id}')">
+            Conosci ${dog.name} <i data-lucide="arrow-right" style="width:16px; height:16px; margin-left:6px;"></i>
+          </button>
+        ` : `
+          <button class="btn btn-disabled dog-card-btn" style="width:100%; margin-top: 16px;" disabled>
+            ${dog.status === "ADOTTATO" ? "Adottato 🎉" : "Visita in corso ⌛"}
+          </button>
+        `}
       </div>
     </div>
   `;
@@ -537,26 +593,6 @@ function renderDogCard(dog) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function renderRazze() {
-  const breedCardsHtml = BREEDS_DB
-    .map(breed => {
-      const energyLabel = breed.energy === "Moderato" ? "MEDIA" : breed.energy.toUpperCase();
-      return `
-        <div class="breed-card" onclick="navigateTo('#dettaglio/${breed.id}')">
-          <div class="breed-image-container" style="position: relative;">
-            <img src="${breed.image}" alt="${breed.name}" />
-            <span class="breed-energy-badge-overlay energy-${breed.energy.toLowerCase()}">ENERGIA ${energyLabel}</span>
-          </div>
-          <div class="breed-info">
-            <span class="breed-name">${breed.name}</span>
-            <p class="breed-description">${breed.subtitle}</p>
-            <div class="breed-card-footer-action">
-              <span class="breed-discover-btn">Scopri i cani disponibili <i data-lucide="arrow-right"></i></span>
-            </div>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
 
   return `
     <div class="view-section">
@@ -579,18 +615,20 @@ function renderRazze() {
             <label class="section-label">Seleziona:</label>
             <div class="select-wrapper">
               <i data-lucide="map-pin" class="select-icon"></i>
+              <select id="filter-regione" class="form-control filter-select">
+                <option value="">Scegli la Regione...</option>
+              </select>
+            </div>
+            <div class="select-wrapper" style="margin-top: 12px;">
+              <i data-lucide="map-pin" class="select-icon"></i>
               <select id="filter-provincia" class="form-control filter-select">
-                <option value="">Scegli la Provincia</option>
-                <option value="Milano (MI)">Milano (MI)</option>
-                <option value="Roma (RM)">Roma (RM)</option>
+                <option value="">Scegli la Provincia...</option>
               </select>
             </div>
             <div class="select-wrapper" style="margin-top: 12px;">
               <i data-lucide="map-pin" class="select-icon"></i>
               <select id="filter-citta" class="form-control filter-select">
                 <option value="">Scegli la Città...</option>
-                <option value="Milano">Milano</option>
-                <option value="Roma">Roma</option>
               </select>
             </div>
           </div>
@@ -659,11 +697,7 @@ function renderRazze() {
               <div id="breed-subselect-wrapper" class="hidden" style="margin-top: 8px; margin-left: 28px;">
                 <select id="filter-breed-name" class="form-control filter-select" style="font-size: 13px; padding: 6px 12px; height: auto;">
                   <option value="">Tutte le razze pure</option>
-                  <option value="golden-retriever">Golden Retriever</option>
-                  <option value="border-collie">Border Collie</option>
-                  <option value="french-bulldog">Bulldog Francese</option>
-                  <option value="labrador-retriever">Labrador Retriever</option>
-                  <option value="cocker-spaniel">Cocker Spaniel</option>
+                  ${state.breeds.filter(b => b.id !== "meticcio").map(b => `<option value="${b.id}">${b.name}</option>`).join("")}
                 </select>
               </div>
 
@@ -772,18 +806,12 @@ function renderRazze() {
         <!-- Breeds grid and Pagination container -->
         <div class="breeds-container">
           <div class="breeds-grid" id="breeds-list-grid">
-            ${breedCardsHtml}
+            <!-- Populated dynamically -->
           </div>
 
           <!-- Pagination -->
-          <div class="pagination-container">
-            <button class="pagination-arrow-btn"><i data-lucide="chevron-left"></i></button>
-            <span class="pagination-number active">1</span>
-            <span class="pagination-number">2</span>
-            <span class="pagination-number">3</span>
-            <span class="pagination-dots">...</span>
-            <span class="pagination-number">12</span>
-            <button class="pagination-arrow-btn"><i data-lucide="chevron-right"></i></button>
+          <div id="breeds-pagination" class="pagination-container">
+            <!-- Populated dynamically -->
           </div>
         </div>
       </div>
@@ -805,7 +833,7 @@ function renderRazze() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function renderDettaglio() {
-  const breed = BREEDS_DB.find(b => b.id === state.selectedBreedId) || BREEDS_DB[0];
+  const breed = state.breeds.find(b => b.id === state.selectedBreedId) || state.breeds[0];
   
   // Find available dogs of this breed
   const availableDogs = state.partnerDogs.filter(dog => {
@@ -818,6 +846,8 @@ function renderDettaglio() {
        </div>`
     : `<p style="color:var(--dark-gray); font-style:italic; margin-top:20px;">Al momento non ci sono cani di questa razza disponibili per l'adozione. Contatta i nostri canili partner per maggiori informazioni.</p>`;
 
+  const floatingBadgeText = breed.name.toLowerCase().includes("golden") ? "N.1 PER FAMIGLIE" : breed.name.toLowerCase().includes("border") ? "N.1 PER ADDESTRAMENTO" : "N.1 COMPAGNIA";
+
   return `
     <div class="view-section">
       <!-- Back button -->
@@ -826,36 +856,40 @@ function renderDettaglio() {
       </button>
 
       <div class="breed-detail-layout">
-        <div class="breed-detail-image">
-          <img src="${breed.image}" alt="${breed.name}" />
+        <div class="breed-detail-image animate-fade-in" style="position: relative; overflow: visible;">
+          <img src="${breed.image}" alt="${breed.name}" style="border-radius: var(--radius-lg); width: 100%; height: 100%; object-fit: cover;" />
+          <span class="breed-badge-floating">${floatingBadgeText}</span>
         </div>
         
         <div class="breed-detail-content">
-          <span class="badge badge-green">Scheda Razza</span>
-          <h1>${breed.name}</h1>
-          <p class="subtitle">"${breed.subtitle}"</p>
-          <p style="color:var(--dark-gray); font-size:16px;">${breed.description}</p>
+          <div class="animate-fade-in delay-1">
+            <span class="badge badge-green">Scheda Razza</span>
+            <h1>${breed.name}</h1>
+            <p class="subtitle">"${breed.subtitle}"</p>
+          </div>
           
-          <div class="breed-specs-grid">
-            <div class="spec-item">
-              <label>Taglia</label>
+          <p class="animate-fade-in delay-2" style="color:var(--dark-gray); font-size:16px; line-height:1.6;">${breed.description}</p>
+          
+          <div class="breed-specs-grid-figma animate-fade-in delay-3">
+            <div class="spec-item-figma">
+              <label style="display:flex; align-items:center; gap:6px; margin:0;"><i data-lucide="scale" style="width:14px; height:14px;"></i> Taglia</label>
               <span>${breed.size}</span>
             </div>
-            <div class="spec-item">
-              <label>Aspettativa di vita</label>
+            <div class="spec-item-figma">
+              <label style="display:flex; align-items:center; gap:6px; margin:0;"><i data-lucide="hourglass" style="width:14px; height:14px;"></i> Aspettativa</label>
               <span>${breed.life}</span>
             </div>
-            <div class="spec-item full-width">
-              <label>Temperamento</label>
+            <div class="spec-item-figma full-width">
+              <label style="display:flex; align-items:center; gap:6px; margin:0;"><i data-lucide="heart" style="width:14px; height:14px;"></i> Temperamento</label>
               <span>${breed.temperament}</span>
             </div>
           </div>
 
-          <div class="lo-sapevi-card">
-            <i data-lucide="help-circle" style="width:24px; height:24px;"></i>
+          <div class="lo-sapevi-card animate-fade-in delay-4">
+            <i data-lucide="info" style="width:24px; height:24px; flex-shrink:0;"></i>
             <div>
-              <h4>Lo sapevi?</h4>
-              <p>${breed.funFact}</p>
+              <h4 style="color: white; font-weight:800; font-size:16px; margin:0 0 4px 0;">Lo sapevi?</h4>
+              <p style="color: white; font-size:14px; margin:0; opacity:0.95; line-height:1.5;">${breed.funFact}</p>
             </div>
           </div>
         </div>
@@ -863,9 +897,156 @@ function renderDettaglio() {
 
       <!-- Available Dogs section -->
       <section style="margin-top:60px; margin-bottom:40px; border-top: 1px solid var(--light-gray); padding-top:40px;">
-        <h2 style="font-family: var(--font-headings); font-size:28px; font-weight:800;">Esemplari di questa razza disponibili per l'adozione</h2>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:20px; margin-bottom:30px;">
+          <div>
+            <h2 style="font-family: var(--font-headings); font-size:28px; font-weight:800; color:var(--primary); margin:0;">Cani disponibili per il matching</h2>
+            <p style="color:var(--dark-gray); font-size:16px; margin:6px 0 0 0;">Trova il tuo nuovo migliore amico tra le strutture certificate FIDOG.</p>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <span class="badge" style="background-color:var(--secondary); color:white; padding:8px 16px; font-size:13px; font-weight:700; text-transform:none; cursor:pointer; border-radius: var(--radius-full);">
+              Tutta Italia
+            </span>
+            <span class="badge" style="background-color:var(--secondary); color:white; padding:8px 16px; font-size:13px; font-weight:700; text-transform:none; cursor:pointer; border-radius: var(--radius-full);">
+              Adatto a bambini
+            </span>
+            <span class="badge" style="background-color:var(--secondary); color:white; padding:8px 16px; font-size:13px; font-weight:700; text-transform:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; border-radius: var(--radius-full);">
+              <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i> Filtri
+            </span>
+          </div>
+        </div>
         ${availableDogsHtml}
       </section>
+
+      <!-- Bottom Quiz Banner -->
+      <section class="breed-quiz-banner">
+        <div class="breed-quiz-banner-content">
+          <h2>Sei pronto a conoscere il tuo ${breed.name}?</h2>
+          <p>Completa il nostro questionario di compatibilità intelligente. Ti aiuteremo a capire se sei il match perfetto per uno dei nostri ${breed.name}.</p>
+          <div class="breed-quiz-banner-actions">
+            <button class="btn btn-white" onclick="navigateTo('#questionario')">Inizia il questionario ora</button>
+            <button class="btn btn-outline-white" onclick="scrollToSteps()">Come funziona FIDOG?</button>
+          </div>
+        </div>
+        <div class="breed-quiz-banner-graphic">
+          <div class="tilted-white-card">
+            <img src="img/logo.png" alt="FIDOG" style="width:100px; opacity:0.8;" />
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VIEW: DOG DETAIL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderCaneDetail() {
+  const dog = state.partnerDogs.find(d => String(d.id) === String(state.selectedDogId));
+  if (!dog) {
+    return `
+      <div class="view-section" style="text-align:center; padding: 80px 20px;">
+        <h2>Cane non trovato</h2>
+        <p style="color:var(--dark-gray); margin-top:12px;">Il cane cercato potrebbe non essere più disponibile o l'indirizzo potrebbe essere errato.</p>
+        <button class="btn btn-primary" onclick="navigateTo('#razze')" style="margin-top:24px;">Torna al catalogo</button>
+      </div>
+    `;
+  }
+
+  const isFav = state.favorites.includes(dog.id);
+  const badgeClass = dog.status === "DISPONIBILE" ? "badge-green" : "badge-orange";
+  
+  // Find breed info if available
+  const breed = state.breeds.find(b => b.id === dog.breedId || b.name.toLowerCase() === dog.breedName.toLowerCase());
+
+  return `
+    <div class="view-section">
+      <!-- Back button -->
+      <button class="btn btn-secondary" onclick="window.history.back()" style="margin-bottom:30px; padding:8px 16px;">
+        <i data-lucide="arrow-left" style="width:16px; height:16px;"></i> Indietro
+      </button>
+
+      <div class="breed-detail-layout">
+        <div class="breed-detail-image animate-fade-in">
+          <img src="${dog.image}" alt="${dog.name}" />
+        </div>
+        
+        <div class="breed-detail-content">
+          <div class="animate-fade-in delay-1">
+            <span class="badge ${badgeClass}">${dog.status}</span>
+            <h1 style="margin-top: 10px;">${dog.name}</h1>
+            <p class="subtitle" style="font-weight: 600; color: var(--primary); font-size: 18px;">
+              ${dog.breedName} • ${dog.gender}
+            </p>
+          </div>
+          
+          <div class="breed-specs-grid animate-fade-in delay-2" style="margin-top:20px; margin-bottom:20px;">
+            <div class="spec-item">
+              <label>Età</label>
+              <span>${dog.age}</span>
+            </div>
+            <div class="spec-item">
+              <label>Sesso</label>
+              <span>${dog.gender}</span>
+            </div>
+            <div class="spec-item">
+              <label>Canile / Struttura</label>
+              <span>${dog.nomeCanile || dog.nome_canile || "Struttura Partner Fidog"}</span>
+            </div>
+            <div class="spec-item">
+              <label>Località</label>
+              <span>${dog.location}</span>
+            </div>
+            ${dog.regione ? `
+            <div class="spec-item">
+              <label>Regione</label>
+              <span>${dog.regione}</span>
+            </div>
+            ` : ''}
+          </div>
+
+          <div class="animate-fade-in delay-3" style="margin-bottom:25px;">
+            <h3 style="font-family: var(--font-headings); font-size:20px; font-weight:800; margin-bottom:10px;">La mia storia</h3>
+            <p style="color:var(--dark-gray); font-size:16px; line-height:1.6;">${dog.storia || "Non abbiamo ancora inserito la storia completa di questo cagnolino, contatta il canile ospitante per fargli visita di persona!"}</p>
+          </div>
+
+          <div class="animate-fade-in delay-4" style="margin-bottom:25px;">
+            <h3 style="font-family: var(--font-headings); font-size:20px; font-weight:800; margin-bottom:10px;">Caratteristiche e Salute</h3>
+            <ul style="color:var(--dark-gray); font-size:15px; padding-left:20px; line-height:1.6; margin-bottom:15px;">
+              <li>Stato Veterinario: <strong>${dog.medical || 'Controlli regolari effettuati'}</strong></li>
+              <li>Addestrato: <strong>${dog.trained ? 'Sì, risponde ai comandi base' : 'No (in addestramento)'}</strong></li>
+            </ul>
+            <div class="dog-tags" style="display:flex; flex-wrap:wrap; gap:8px;">
+              ${dog.tags.map(t => `<span class="badge badge-gray">${t}</span>`).join("")}
+            </div>
+          </div>
+
+          ${breed ? `
+          <div class="lo-sapevi-card animate-fade-in delay-4" style="margin-top: 25px;">
+            <i data-lucide="help-circle" style="width:24px; height:24px;"></i>
+            <div>
+              <h4>Vuoi scoprire di più sulla mia razza?</h4>
+              <p>${breed.description.substring(0, 120)}...</p>
+              <a href="#dettaglio/${breed.id}" style="font-weight: 700; color: var(--primary); text-decoration: none; display: inline-block; margin-top: 8px;">
+                Vai alla scheda tecnica della razza &gt;
+              </a>
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- CTA Buttons -->
+          <div class="animate-fade-in delay-5" style="display:flex; flex-wrap:wrap; gap:16px; margin-top:30px;">
+            <button class="btn btn-primary" onclick="openAdoptionModal('${dog.id}')" style="padding: 12px 28px;">
+              Contatta per l'adozione
+            </button>
+            <button class="btn btn-secondary ${isFav ? 'active' : ''}" onclick="toggleFavorite('${dog.id}', event); renderCurrentView();" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="heart" style="width:18px; height:18px;"></i>
+              ${isFav ? 'Rimuovi dai Preferiti' : 'Salva nei Preferiti'}
+            </button>
+          </div>
+
+        </div>
+      </div>
     </div>
   `;
 }
@@ -1033,7 +1214,7 @@ function renderPartner() {
           <h1>Uniamoci per il loro bene</h1>
           <p>Entra a far parte dell'ecosistema digitale FIDOG. Offriamo a canili, rifugi e allevatori certificati gli strumenti più avanzati per gestire, promuovere e monitorare le adozioni responsabili in tutta Italia.</p>
           <div class="partner-hero-buttons">
-            <a href="#partner-form-anchor" class="text-link-arrow">Diventa Partner <i data-lucide="arrow-right"></i></a>
+            <a href="javascript:void(0)" onclick="scrollToPartnerForm()" class="text-link-arrow">Diventa Partner <i data-lucide="arrow-right"></i></a>
             <button class="btn btn-outline" onclick="scrollToDashboard()">Esplora la Dashboard</button>
           </div>
         </div>
@@ -1103,7 +1284,109 @@ function renderPartner() {
         </div>
         
         <div class="partner-dashboard">
-          ${dashboardHtml}
+          <aside class="dashboard-sidebar">
+            <ul class="dashboard-menu">
+              <li style="font-family: var(--font-headings); font-size: 20px; font-weight: 800; color: var(--secondary); margin-bottom: 20px; padding: 0 16px; list-style: none;">FIDOG Hub</li>
+              <li class="dashboard-menu-item active" style="background-color: var(--secondary); color: white; cursor: default;">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+              </li>
+              <li class="dashboard-menu-item" style="cursor: default;">
+                <i data-lucide="paw-print"></i> Cani
+              </li>
+              <li class="dashboard-menu-item" style="cursor: default;">
+                <i data-lucide="home"></i> Canili
+              </li>
+              <li class="dashboard-menu-item" style="cursor: default;">
+                <i data-lucide="file-text"></i> Questionari
+              </li>
+            </ul>
+            <div class="dashboard-menu-footer" style="cursor: default;">
+              <i data-lucide="settings"></i> Impostazioni
+            </div>
+          </aside>
+          
+          <div class="dashboard-content">
+            <div class="dashboard-content-header">
+              <h3>Gestione Canile "Oasi Serena"</h3>
+              <button class="btn" style="background-color: var(--secondary); color: white; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; border-radius: var(--radius-sm); border: none; padding: 10px 18px; cursor: default;">
+                <i data-lucide="plus"></i> Nuovo Cane
+              </button>
+            </div>
+            
+            <div class="dashboard-stats-grid">
+              <div class="dashboard-stat-card">
+                <label>Cani Ospitati</label>
+                <span>42</span>
+              </div>
+              <div class="dashboard-stat-card">
+                <label>Adozioni questo mese</label>
+                <span>8</span>
+              </div>
+              <div class="dashboard-stat-card">
+                <label>In attesa matching</label>
+                <span>15</span>
+              </div>
+            </div>
+            
+            <div class="dashboard-table-container">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Provenienza</th>
+                    <th>Stato</th>
+                    <th style="text-align: right;">Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="table-dog-name">
+                        <div class="table-dog-avatar" style="background-color: #CBD5E0;"></div>
+                        Rex
+                      </div>
+                    </td>
+                    <td>Roma (RM)</td>
+                    <td>
+                      <span class="badge" style="background-color: #DEF7EC; color: #03543F; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px;">DISPONIBILE</span>
+                    </td>
+                    <td style="text-align: right;">
+                      <div class="table-actions" style="justify-content: flex-end;">
+                        <button class="table-action-btn table-action-btn-edit" style="cursor: default;">
+                          <i data-lucide="edit-3"></i>
+                        </button>
+                        <button class="table-action-btn table-action-btn-delete" style="cursor: default;">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="table-dog-name">
+                        <div class="table-dog-avatar" style="background-color: #CBD5E0;"></div>
+                        Luna
+                      </div>
+                    </td>
+                    <td>Milano (MI)</td>
+                    <td>
+                      <span class="badge" style="background-color: #FEF3C7; color: #92400E; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px;">IN CORSO</span>
+                    </td>
+                    <td style="text-align: right;">
+                      <div class="table-actions" style="justify-content: flex-end;">
+                        <button class="table-action-btn table-action-btn-edit" style="cursor: default;">
+                          <i data-lucide="edit-3"></i>
+                        </button>
+                        <button class="table-action-btn table-action-btn-delete" style="cursor: default;">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1322,11 +1605,67 @@ function scrollToDashboard() {
   document.getElementById("partner-dashboard-anchor").scrollIntoView({ behavior: "smooth" });
 }
 
+function scrollToPartnerForm() {
+  const formElement = document.getElementById("partner-form-anchor");
+  if (formElement) {
+    formElement.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function scrollToSteps() {
+  if (window.location.hash === '#home' || window.location.hash === '') {
+    const el = document.getElementById("steps-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  } else {
+    navigateTo('#home');
+    setTimeout(() => {
+      const el = document.getElementById("steps-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 150);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: ACCOUNT
 // ═══════════════════════════════════════════════════════════════════════════════
 
+function renderLogin() {
+  return `
+    <div class="view-section" style="display: flex; align-items: center; justify-content: center; min-height: 60vh;">
+      <div class="login-container" style="width: 100%; max-width: 480px; padding: 40px; background-color: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); text-align: center; border: 1px solid var(--light-gray);">
+        <div style="background-color: var(--secondary-light); width: 64px; height: 64px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--secondary);">
+          <i data-lucide="lock" style="width: 32px; height: 32px;"></i>
+        </div>
+        <h2 style="font-family: var(--font-headings); font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--dark);">Accedi a FIDOG</h2>
+        <p style="color: var(--dark-gray); margin-bottom: 32px; font-size: 15px;">Inserisci le tue credenziali per accedere al tuo profilo e gestire le adozioni.</p>
+        
+        <form id="login-form" onsubmit="handleLoginSubmit(event)" style="text-align: left;">
+          <div class="form-group">
+            <label for="login-email">Indirizzo Email</label>
+            <input type="email" id="login-email" class="form-control" placeholder="es. dani@esempio.it" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-size: 16px; padding: 14px 24px;">
+            <i data-lucide="log-in"></i> Accedi
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
 function renderAccount() {
+  if (!state.isLoggedIn) {
+    return renderLogin();
+  }
+
   const savedDogs = state.partnerDogs.filter(dog => state.favorites.includes(dog.id));
   
   const savedDogsHtml = savedDogs.length > 0
@@ -1338,11 +1677,12 @@ function renderAccount() {
          <p>Non hai ancora salvato nessun ospite nella tua lista desideri.</p>
        </div>`;
 
+  const stepIndex = state.adoptionStatus.stepIndex;
   const stepperNodes = [
-    { name: "Richiesta", completed: true, active: false },
-    { name: "Intervista", completed: true, active: true },
-    { name: "Visita a canile", completed: false, active: false },
-    { name: "Affido", completed: false, active: false }
+    { name: "Richiesta", completed: stepIndex >= 0, active: stepIndex === 0 },
+    { name: "Intervista", completed: stepIndex >= 1, active: stepIndex === 1 },
+    { name: "Visita a canile", completed: stepIndex >= 2, active: stepIndex === 2 },
+    { name: "Affido", completed: stepIndex >= 3, active: stepIndex === 3 }
   ];
 
   const stepperHtml = stepperNodes.map((step, idx) => {
@@ -1384,6 +1724,9 @@ function renderAccount() {
               <button class="btn btn-secondary" onclick="openProfileModal(event)">
                 <i data-lucide="edit"></i> Modifica Profilo
               </button>
+              <button class="btn btn-danger" onclick="handleLogout(event)">
+                <i data-lucide="log-out"></i> Esci
+              </button>
               <button class="btn btn-icon">
                 <i data-lucide="settings"></i>
               </button>
@@ -1399,7 +1742,7 @@ function renderAccount() {
             
             <div class="stepper-container">
               <div class="stepper-line"></div>
-              <div class="stepper-line-progress" style="width: 33.33%;"></div>
+              <div class="stepper-line-progress" style="width: ${stepIndex * 33.33}%;"></div>
               ${stepperHtml}
             </div>
 
@@ -1415,9 +1758,9 @@ function renderAccount() {
           </div>
 
           <!-- Saved Dogs -->
-          <section style="margin-top: 40px;">
-            <h3 style="font-family:var(--font-headings); font-size:24px; font-weight:800; margin-bottom:20px;">Razze che segui</h3>
-            <p style="color:var(--dark-gray); font-size:14px; margin-top:-16px; margin-bottom:24px;">Hai salvato questi profili per tenerli d'occhio.</p>
+          <section id="favorites-section" style="margin-top: 40px; scroll-margin-top: 100px;">
+            <h3 style="font-family:var(--font-headings); font-size:24px; font-weight:800; margin-bottom:20px;">La tua lista desideri</h3>
+            <p style="color:var(--dark-gray); font-size:14px; margin-top:-16px; margin-bottom:24px;">Hai salvato questi cani per tenerli d'occhio.</p>
             ${savedDogsHtml}
           </section>
         </div>
@@ -1437,7 +1780,7 @@ function renderAccount() {
             <i data-lucide="chevron-right" style="color:var(--dark-gray);"></i>
           </div>
 
-          <div class="sidebar-card-widget">
+          <div class="sidebar-card-widget" onclick="document.getElementById('favorites-section').scrollIntoView({ behavior: 'smooth' })" style="cursor: pointer;">
             <div class="sidebar-widget-left">
               <div class="sidebar-widget-icon sidebar-widget-blue">
                 <i data-lucide="heart"></i>
@@ -1479,11 +1822,11 @@ function renderQuestionario() {
         <p class="subtitle">Tipologia di casa</p>
         
         <div class="choice-cards">
-          <div class="choice-card ${activeClass('casa', 'appartamento')}" onclick="selectQuizAnswer('casa', 'appartamento')">
+          <div class="choice-card ${activeClass('casa', 'appartamento')}" onclick="selectQuizAnswer('casa', 'appartamento', this)">
             <i data-lucide="building-2" style="width:36px; height:36px;"></i>
             <span>Appartamento</span>
           </div>
-          <div class="choice-card ${activeClass('casa', 'indipendente')}" onclick="selectQuizAnswer('casa', 'indipendente')">
+          <div class="choice-card ${activeClass('casa', 'indipendente')}" onclick="selectQuizAnswer('casa', 'indipendente', this)">
             <i data-lucide="home" style="width:36px; height:36px;"></i>
             <span>Casa indipendente</span>
           </div>
@@ -1497,15 +1840,15 @@ function renderQuestionario() {
         <p class="subtitle">Spazi esterni</p>
         
         <div class="choice-cards">
-          <div class="choice-card ${activeClass('giardino', 'no')}" onclick="selectQuizAnswer('giardino', 'no')">
+          <div class="choice-card ${activeClass('giardino', 'no')}" onclick="selectQuizAnswer('giardino', 'no', this)">
             <i data-lucide="slash" style="width:36px; height:36px;"></i>
             <span>No</span>
           </div>
-          <div class="choice-card ${activeClass('giardino', 'piccolo')}" onclick="selectQuizAnswer('giardino', 'piccolo')">
+          <div class="choice-card ${activeClass('giardino', 'piccolo')}" onclick="selectQuizAnswer('giardino', 'piccolo', this)">
             <i data-lucide="flower" style="width:36px; height:36px;"></i>
             <span>Piccolo / Terrazzo</span>
           </div>
-          <div class="choice-card ${activeClass('giardino', 'ampio')}" onclick="selectQuizAnswer('giardino', 'ampio')">
+          <div class="choice-card ${activeClass('giardino', 'ampio')}" onclick="selectQuizAnswer('giardino', 'ampio', this)">
             <i data-lucide="trees" style="width:36px; height:36px;"></i>
             <span>Ampio</span>
           </div>
@@ -1519,15 +1862,15 @@ function renderQuestionario() {
         <p class="subtitle">Tempo e Attività</p>
         
         <div class="choice-cards">
-          <div class="choice-card ${activeClass('tempo', 'poco')}" onclick="selectQuizAnswer('tempo', 'poco')">
+          <div class="choice-card ${activeClass('tempo', 'poco')}" onclick="selectQuizAnswer('tempo', 'poco', this)">
             <i data-lucide="clock-1" style="width:36px; height:36px;"></i>
             <span>Meno di 1 ora</span>
           </div>
-          <div class="choice-card ${activeClass('tempo', 'medio')}" onclick="selectQuizAnswer('tempo', 'medio')">
+          <div class="choice-card ${activeClass('tempo', 'medio')}" onclick="selectQuizAnswer('tempo', 'medio', this)">
             <i data-lucide="clock-5" style="width:36px; height:36px;"></i>
             <span>Da 1 a 3 ore</span>
           </div>
-          <div class="choice-card ${activeClass('tempo', 'molto')}" onclick="selectQuizAnswer('tempo', 'molto')">
+          <div class="choice-card ${activeClass('tempo', 'molto')}" onclick="selectQuizAnswer('tempo', 'molto', this)">
             <i data-lucide="clock-10" style="width:36px; height:36px;"></i>
             <span>Più di 3 ore</span>
           </div>
@@ -1578,15 +1921,38 @@ function renderQuestionario() {
   `;
 }
 
-function selectQuizAnswer(key, val) {
+function selectQuizAnswer(key, val, el) {
   state.questionnaire.answers[key] = val;
-  renderCurrentView();
+  
+  if (el) {
+    // Toggle active state in DOM without full re-render
+    const container = el.closest(".choice-cards");
+    if (container) {
+      container.querySelectorAll(".choice-card").forEach(card => {
+        card.classList.remove("selected");
+      });
+    }
+    el.classList.add("selected");
+
+    // Enable next step button in DOM
+    const quizBox = el.closest(".quiz-box");
+    if (quizBox) {
+      const nextBtn = quizBox.querySelector(".quiz-actions .btn-primary");
+      if (nextBtn) {
+        nextBtn.removeAttribute("disabled");
+        nextBtn.removeAttribute("style");
+      }
+    }
+  } else {
+    renderCurrentView();
+  }
 }
 
 function prevQuizStep() {
   if (state.questionnaire.step > 1) {
     state.questionnaire.step--;
     renderCurrentView();
+    window.scrollTo(0, 0);
   }
 }
 
@@ -1597,10 +1963,12 @@ function nextQuizStep() {
   if (state.questionnaire.step < 3) {
     state.questionnaire.step++;
     renderCurrentView();
+    window.scrollTo(0, 0);
   } else {
     state.questionnaire.step = 4;
     renderCurrentView();
     triggerConfetti();
+    window.scrollTo(0, 0);
   }
 }
 
@@ -1626,7 +1994,29 @@ function renderQuestionarioResults() {
     }
   }
 
-  const breed = BREEDS_DB.find(b => b.id === matchedBreedId);
+  let breed = state.breeds.find(b => {
+    const id = String(b.id);
+    if (matchedBreedId === "french-bulldog") {
+      return id === "65" || b.name.toLowerCase().includes("bulldog francese");
+    }
+    if (matchedBreedId === "cocker-spaniel") {
+      return id === "121" || id === "120" || b.name.toLowerCase().includes("cocker");
+    }
+    if (matchedBreedId === "border-collie") {
+      return id === "20" || b.name.toLowerCase().includes("border collie");
+    }
+    if (matchedBreedId === "golden-retriever") {
+      return id === "176" || b.name.toLowerCase().includes("golden retriever");
+    }
+    if (matchedBreedId === "meticcio") {
+      return id === "357" || b.name.toLowerCase().includes("meticcio") || b.name.toLowerCase().includes("no razza");
+    }
+    return id === matchedBreedId;
+  });
+
+  if (!breed) {
+    breed = state.breeds.find(b => String(b.id) === "357" || b.name.toLowerCase().includes("no razza") || b.name.toLowerCase().includes("meticcio")) || state.breeds[0];
+  }
 
   return `
     <div class="view-section" style="max-width:800px; margin:0 auto; padding-bottom:60px;">
@@ -1679,6 +2069,21 @@ function triggerConfetti() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function bindViewEvents() {
+  if (state.currentView === "razze") {
+    state.breedsPage = 1;
+    state.filteredBreeds = [...state.breeds];
+    renderBreedsList();
+    initLocationDropdowns();
+    const regSelect = document.getElementById("filter-regione");
+    if (regSelect) {
+      regSelect.addEventListener("change", updateProvinceDropdownOptions);
+    }
+    const provSelect = document.getElementById("filter-provincia");
+    if (provSelect) {
+      provSelect.addEventListener("change", updateCityDropdownOptions);
+    }
+  }
+
   const homeSearchBtn = document.getElementById("home-search-btn");
   if (homeSearchBtn) {
     homeSearchBtn.addEventListener("click", handleHomeSearch);
@@ -1785,18 +2190,9 @@ function removeTraitFilter(trait) {
 window.removeTraitFilter = removeTraitFilter;
 
 function handleBreedFiltersChange() {
-  const provincia = document.getElementById("filter-provincia").value;
-  const citta = document.getElementById("filter-citta").value;
-  
-  // Sync province and city dropdowns
-  const citySelect = document.getElementById("filter-citta");
-  if (citySelect && provincia) {
-    if (provincia === "Milano (MI)" && citySelect.value === "Roma") {
-      citySelect.value = "";
-    } else if (provincia === "Roma (RM)" && citySelect.value === "Milano") {
-      citySelect.value = "";
-    }
-  }
+  const regione = document.getElementById("filter-regione") ? document.getElementById("filter-regione").value : "";
+  const provincia = document.getElementById("filter-provincia") ? document.getElementById("filter-provincia").value : "";
+  const citta = document.getElementById("filter-citta") ? document.getElementById("filter-citta").value : "";
 
   const selectedSizes = Array.from(document.querySelectorAll("input[name='taglia']:checked")).map(el => el.value);
   const selectedAges = Array.from(document.querySelectorAll("input[name='eta']:checked")).map(el => el.value);
@@ -1815,24 +2211,27 @@ function handleBreedFiltersChange() {
     `).join("");
   }
 
-  let filtered = [...BREEDS_DB];
+  let filtered = [...state.breeds];
 
   // 1. Taglia (Size)
   if (selectedSizes.length > 0) {
     filtered = filtered.filter(breed => selectedSizes.includes(breed.size));
   }
 
-  // 2. Location (Provincia & Città)
-  if (provincia || citta) {
+  // 2. Location (Regione, Provincia & Città)
+  if (regione || provincia || citta) {
     filtered = filtered.filter(breed => {
       return state.partnerDogs.some(dog => {
         const breedMatch = dog.breedId === breed.id || dog.breedName.toLowerCase().includes(breed.name.toLowerCase());
         let locMatch = true;
+        if (regione) {
+          locMatch = locMatch && (dog.regione && dog.regione.toLowerCase() === regione.toLowerCase());
+        }
         if (provincia) {
-          locMatch = locMatch && dog.location.includes(provincia);
+          locMatch = locMatch && (dog.provSigla && dog.provSigla.toLowerCase() === provincia.toLowerCase());
         }
         if (citta) {
-          locMatch = locMatch && dog.location.toLowerCase().includes(citta.toLowerCase());
+          locMatch = locMatch && (dog.citta && dog.citta.toLowerCase() === citta.toLowerCase());
         }
         return breedMatch && locMatch;
       });
@@ -1935,38 +2334,22 @@ function handleBreedFiltersChange() {
     });
   }
 
-  const grid = document.getElementById("breeds-list-grid");
-  if (grid) {
-    grid.innerHTML = filtered.map(breed => {
-      const energyLabel = breed.energy === "Moderato" ? "MEDIA" : breed.energy.toUpperCase();
-      return `
-        <div class="breed-card" onclick="navigateTo('#dettaglio/${breed.id}')">
-          <div class="breed-image-container" style="position: relative;">
-            <img src="${breed.image}" alt="${breed.name}" />
-            <span class="breed-energy-badge-overlay energy-${breed.energy.toLowerCase()}">ENERGIA ${energyLabel}</span>
-          </div>
-          <div class="breed-info">
-            <span class="breed-name">${breed.name}</span>
-            <p class="breed-description">${breed.subtitle}</p>
-            <div class="breed-card-footer-action">
-              <span class="breed-discover-btn">Scopri i cani disponibili <i data-lucide="arrow-right"></i></span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
-    
-    if (window.lucide) window.lucide.createIcons();
-
-    if (filtered.length === 0) {
-      grid.innerHTML = `<div style="grid-column: span 3; text-align:center; padding:40px; color:var(--dark-gray);">Nessuna razza corrisponde ai filtri selezionati. Prova a modificarli!</div>`;
-    }
-  }
+  state.filteredBreeds = filtered;
+  state.breedsPage = 1;
+  renderBreedsList();
 }
 
 function handleResetFilters() {
-  document.getElementById("filter-provincia").value = "";
-  document.getElementById("filter-citta").value = "";
+  if (document.getElementById("filter-regione")) {
+    document.getElementById("filter-regione").value = "";
+  }
+  if (document.getElementById("filter-provincia")) {
+    document.getElementById("filter-provincia").value = "";
+  }
+  if (document.getElementById("filter-citta")) {
+    document.getElementById("filter-citta").value = "";
+  }
+  updateProvinceDropdownOptions();
   if (document.getElementById("filter-breed-name")) {
     document.getElementById("filter-breed-name").value = "";
   }
@@ -2055,7 +2438,7 @@ function handleCrudSubmit(event) {
   const gender = document.getElementById("crud-dog-sesso").value;
   const tagVal = document.getElementById("crud-dog-tag").value;
   const breedId = document.getElementById("crud-dog-breed").value;
-  const breedObj = BREEDS_DB.find(b => b.id === breedId) || BREEDS_DB[0];
+  const breedObj = state.breeds.find(b => b.id === breedId) || state.breeds[0];
 
   if (!name) return;
 
@@ -2131,13 +2514,427 @@ function handleProfileSubmit(event) {
   storage.saveProfile();
   closeModal("profile-modal");
   
-  const welcomeBtn = document.getElementById("header-welcome-btn");
-  if (welcomeBtn) {
-    welcomeBtn.innerHTML = `<i data-lucide="user"></i> ${state.userProfile.name}`;
-    if (window.lucide) window.lucide.createIcons();
-  }
+  updateAuthUI();
 
   renderCurrentView();
+}
+
+function updateAuthUI() {
+  const welcomeBtn = document.getElementById("header-welcome-btn");
+  const loginBtn = document.getElementById("header-login-btn");
+  const mobileWelcomeBtn = document.getElementById("mobile-welcome-btn");
+  const mobileLoginBtn = document.getElementById("mobile-login-btn");
+
+  if (state.isLoggedIn) {
+    if (welcomeBtn) {
+      welcomeBtn.style.display = "inline-flex";
+      welcomeBtn.innerHTML = `<i data-lucide="user"></i> ${state.userProfile.name}`;
+    }
+    if (loginBtn) loginBtn.style.display = "none";
+    if (mobileWelcomeBtn) {
+      mobileWelcomeBtn.style.display = "inline-flex";
+      mobileWelcomeBtn.innerHTML = `<i data-lucide="user"></i> ${state.userProfile.name}`;
+    }
+    if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
+  } else {
+    if (welcomeBtn) welcomeBtn.style.display = "none";
+    if (loginBtn) loginBtn.style.display = "inline-flex";
+    if (mobileWelcomeBtn) mobileWelcomeBtn.style.display = "none";
+    if (mobileLoginBtn) mobileLoginBtn.style.display = "inline-flex";
+  }
+  
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+function handleLogout(event) {
+  if (event) event.preventDefault();
+  state.isLoggedIn = false;
+  storage.saveLoginState();
+  updateAuthUI();
+  navigateTo("#home");
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  const username = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+
+  try {
+    const response = await fetch("api/auth.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "login",
+        username: username,
+        password: password
+      })
+    });
+
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      state.isLoggedIn = true;
+      state.userProfile.name = result.user.first_name + " " + result.user.last_name;
+      state.userProfile.email = result.user.email;
+      
+      storage.saveProfile();
+      storage.saveLoginState();
+      updateAuthUI();
+      renderCurrentView();
+    } else {
+      alert("Errore di accesso: " + (result.error || "Credenziali errate"));
+    }
+  } catch (error) {
+    console.error("Errore durante il login con il database:", error);
+    alert("Impossibile connettersi al database di autenticazione. Utilizzo login locale offline.");
+    
+    // Offline fallback for testing when DB is not running
+    state.isLoggedIn = true;
+    storage.saveLoginState();
+    updateAuthUI();
+    renderCurrentView();
+  }
+}
+
+function mapDbDogToFrontend(dbDog) {
+  let status = "DISPONIBILE";
+  if (dbDog.stato) {
+    const s = dbDog.stato.toLowerCase();
+    if (s === "disponibile") status = "DISPONIBILE";
+    else if (s === "in prova") status = "IN PROVA";
+    else if (s === "adottato") status = "ADOTTATO";
+  }
+  
+  const tags = dbDog.attributi && dbDog.attributi.length > 0 ? dbDog.attributi : ["Affettuoso"];
+  const trained = tags.some(t => t.toLowerCase().includes("addestrat"));
+  
+  let medical = "Nessuno";
+  if (tags.some(t => t.toLowerCase().includes("castrat"))) {
+    medical = "Castrato";
+  } else if (tags.some(t => t.toLowerCase().includes("sterilizzat"))) {
+    medical = "Sterilizzato";
+  }
+
+  let location = "Italia";
+  if (dbDog.citta) {
+    location = dbDog.citta;
+    if (dbDog.prov_sigla) {
+      location += ` (${dbDog.prov_sigla})`;
+    }
+  }
+
+  let image = dbDog.image;
+  if (!image) {
+    image = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=500";
+  }
+
+  return {
+    id: dbDog.id,
+    name: dbDog.nome || "Senza Nome",
+    breedId: dbDog.razza_id,
+    breedName: dbDog.nome_razza || "Meticcio",
+    nomeCanile: dbDog.nome_canile || "",
+    age: dbDog.eta || "Età sconosciuta",
+    gender: dbDog.sesso === "M" ? "Maschio" : "Femmina",
+    location: location,
+    citta: dbDog.citta || "",
+    provincia: dbDog.provincia || "",
+    provSigla: dbDog.prov_sigla || "",
+    regione: dbDog.regione || "",
+    status: status,
+    trained: trained,
+    medical: medical,
+    tags: tags,
+    image: image
+  };
+}
+
+async function loadDatabaseData() {
+  try {
+    const breedsRes = await fetch("api/razze.php");
+    if (breedsRes.ok) {
+      const dbBreeds = await breedsRes.json();
+      state.breeds = dbBreeds.map(dbBreed => {
+        const staticBreed = BREEDS_DB.find(b => b.name.toLowerCase() === dbBreed.nome.toLowerCase() || b.id === dbBreed.id);
+        
+        let size = "Media";
+        if (dbBreed.taglia) {
+          size = dbBreed.taglia.charAt(0).toUpperCase() + dbBreed.taglia.slice(1);
+        }
+
+        return {
+          id: dbBreed.id,
+          name: dbBreed.nome,
+          subtitle: staticBreed ? staticBreed.subtitle : "Un compagno unico e leale",
+          description: staticBreed ? staticBreed.description : "Una razza affascinante ed amabile, pronta a farsi voler bene.",
+          energy: staticBreed ? staticBreed.energy : "Energia media",
+          size: size,
+          life: staticBreed ? staticBreed.life : "10-15 anni",
+          temperament: staticBreed ? staticBreed.temperament : "Affettuoso, leale, socievole",
+          image: dbBreed.image || (staticBreed ? staticBreed.image : "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=500"),
+          funFact: staticBreed ? staticBreed.funFact : "Ogni esemplare ha caratteristiche speciali tutte da scoprire!"
+        };
+      });
+    }
+
+    const dogsRes = await fetch("api/cani.php");
+    if (dogsRes.ok) {
+      const dbDogs = await dogsRes.json();
+      state.partnerDogs = dbDogs.map(mapDbDogToFrontend);
+    }
+
+    const crudBreedSelect = document.getElementById("crud-dog-breed");
+    if (crudBreedSelect) {
+      crudBreedSelect.innerHTML = state.breeds.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
+    }
+
+  } catch (error) {
+    console.error("Errore durante il caricamento dei dati dal database:", error);
+  }
+}
+
+function generatePaginationHTML(currentPage, totalPages) {
+  if (totalPages <= 1) return "";
+
+  let html = "";
+  html += `
+    <button class="pagination-arrow-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changeBreedsPage('prev')" aria-label="Pagina precedente">
+      <i data-lucide="chevron-left"></i>
+    </button>
+  `;
+
+  const range = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) {
+      range.push(i);
+    }
+  } else {
+    range.push(1);
+    if (currentPage > 4) {
+      range.push("...");
+    }
+
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+
+    let adjustedStart = start;
+    let adjustedEnd = end;
+    if (currentPage <= 4) {
+      adjustedEnd = 5;
+    } else if (currentPage >= totalPages - 3) {
+      adjustedStart = totalPages - 4;
+    }
+
+    for (let i = adjustedStart; i <= adjustedEnd; i++) {
+      range.push(i);
+    }
+
+    if (currentPage < totalPages - 3) {
+      range.push("...");
+    }
+
+    range.push(totalPages);
+  }
+
+  range.forEach(item => {
+    if (item === "...") {
+      html += `<span class="pagination-dots">...</span>`;
+    } else {
+      html += `
+        <button class="pagination-number ${item === currentPage ? 'active' : ''}" onclick="changeBreedsPage(${item})">
+          ${item}
+        </button>
+      `;
+    }
+  });
+
+  html += `
+    <button class="pagination-arrow-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changeBreedsPage('next')" aria-label="Pagina successiva">
+      <i data-lucide="chevron-right"></i>
+    </button>
+  `;
+
+  return html;
+}
+
+function renderBreedsList() {
+  const grid = document.getElementById("breeds-list-grid");
+  const pagination = document.getElementById("breeds-pagination");
+  if (!grid || !pagination) return;
+
+  const total = state.filteredBreeds.length;
+  if (total === 0) {
+    grid.innerHTML = `<div style="grid-column: span 3; text-align:center; padding:40px; color:var(--dark-gray);">Nessuna razza corrisponde ai filtri selezionati. Prova a modificarli!</div>`;
+    pagination.innerHTML = "";
+    return;
+  }
+
+  const totalPages = Math.ceil(total / state.breedsPerPage);
+  if (state.breedsPage > totalPages) state.breedsPage = totalPages;
+  if (state.breedsPage < 1) state.breedsPage = 1;
+
+  const start = (state.breedsPage - 1) * state.breedsPerPage;
+  const end = start + state.breedsPerPage;
+  const pageBreeds = state.filteredBreeds.slice(start, end);
+
+  grid.innerHTML = pageBreeds.map(breed => {
+    const energyClass = breed.energy ? breed.energy.toLowerCase().replace(/\s+/g, '-') : 'energia-media';
+    return `
+      <div class="breed-card" onclick="navigateTo('#dettaglio/${breed.id}')">
+        <div class="breed-image-container" style="position: relative;">
+          <span class="breed-energy-badge-overlay energy-${energyClass}">${breed.energy || 'Energia media'}</span>
+          <img src="${breed.image}" alt="${breed.name}" loading="lazy" />
+        </div>
+        <div class="breed-info">
+          <h3 class="breed-name">${breed.name}</h3>
+          <p class="breed-description">${breed.description}</p>
+          <div class="breed-badges">
+            <span class="badge badge-gray">${breed.size}</span>
+            <span class="badge badge-gray">${breed.life}</span>
+          </div>
+          <div class="breed-card-footer-action">
+            <span class="breed-discover-btn">Scopri di più <i data-lucide="arrow-right"></i></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  pagination.innerHTML = generatePaginationHTML(state.breedsPage, totalPages);
+
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+function changeBreedsPage(target) {
+  const total = state.filteredBreeds.length;
+  const totalPages = Math.ceil(total / state.breedsPerPage);
+
+  if (target === 'prev') {
+    state.breedsPage = Math.max(1, state.breedsPage - 1);
+  } else if (target === 'next') {
+    state.breedsPage = Math.min(totalPages, state.breedsPage + 1);
+  } else {
+    const pageNum = parseInt(target, 10);
+    if (!isNaN(pageNum)) {
+      state.breedsPage = Math.max(1, Math.min(totalPages, pageNum));
+    }
+  }
+
+  renderBreedsList();
+
+  const targetElement = document.querySelector(".breeds-layout");
+  if (targetElement) {
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function initLocationDropdowns() {
+  const regSelect = document.getElementById("filter-regione");
+  if (!regSelect) return;
+
+  const regions = new Set();
+  state.partnerDogs.forEach(dog => {
+    if (dog.regione) {
+      regions.add(dog.regione.trim());
+    }
+  });
+
+  const uniqueRegions = Array.from(regions).sort();
+  if (uniqueRegions.length === 0) {
+    uniqueRegions.push("Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia Romagna", "Lazio", "Liguria", "Lombardia", "Marche", "Molise", "Piemonte", "Puglia", "Sardegna", "Toscana", "Umbria", "Valle d'Aosta", "Veneto");
+  }
+
+  regSelect.innerHTML = `<option value="">Scegli la Regione...</option>` +
+    uniqueRegions.map(r => `<option value="${r}">${r}</option>`).join("");
+
+  updateProvinceDropdownOptions();
+}
+
+function updateProvinceDropdownOptions() {
+  const regSelect = document.getElementById("filter-regione");
+  const provSelect = document.getElementById("filter-provincia");
+  if (!provSelect) return;
+
+  const selectedRegion = regSelect ? regSelect.value : "";
+  const provMap = new Map();
+
+  state.partnerDogs.forEach(dog => {
+    const matchesRegion = !selectedRegion || (dog.regione && dog.regione.toLowerCase() === selectedRegion.toLowerCase());
+    if (matchesRegion) {
+      if (dog.provSigla && dog.provincia) {
+        provMap.set(dog.provSigla.trim(), `${dog.provincia.trim()} (${dog.provSigla.trim()})`);
+      } else {
+        const match = dog.location ? dog.location.match(/^(.+?)\s*\((.+?)\)$/) : null;
+        if (match) {
+          const sigla = match[2].trim();
+          let provName = sigla === "MI" ? "Milano" : sigla === "RM" ? "Roma" : sigla;
+          provMap.set(sigla, `${provName} (${sigla})`);
+        }
+      }
+    }
+  });
+
+  const uniqueProvs = Array.from(provMap.entries()).map(([sigla, label]) => ({ sigla, label }));
+  uniqueProvs.sort((a, b) => a.label.localeCompare(b.label));
+
+  const previousSelectedProv = provSelect.value;
+  provSelect.innerHTML = `<option value="">Scegli la Provincia...</option>` +
+    uniqueProvs.map(p => `<option value="${p.sigla}">${p.label}</option>`).join("");
+
+  if (uniqueProvs.some(p => p.sigla === previousSelectedProv)) {
+    provSelect.value = previousSelectedProv;
+  } else {
+    provSelect.value = "";
+  }
+
+  updateCityDropdownOptions();
+}
+
+function updateCityDropdownOptions() {
+  const regSelect = document.getElementById("filter-regione");
+  const provSelect = document.getElementById("filter-provincia");
+  const citySelect = document.getElementById("filter-citta");
+  if (!citySelect) return;
+
+  const selectedRegion = regSelect ? regSelect.value : "";
+  const selectedProvSigla = provSelect ? provSelect.value : "";
+
+  let filteredCities = [];
+  state.partnerDogs.forEach(dog => {
+    const matchesRegion = !selectedRegion || (dog.regione && dog.regione.toLowerCase() === selectedRegion.toLowerCase());
+    const matchesProv = !selectedProvSigla || (dog.provSigla && dog.provSigla.toLowerCase() === selectedProvSigla.toLowerCase());
+
+    if (matchesRegion && matchesProv) {
+      if (dog.citta) {
+        filteredCities.push(dog.citta.trim());
+      } else {
+        const match = dog.location ? dog.location.match(/^(.+?)\s*\((.+?)\)$/) : null;
+        if (match) {
+          filteredCities.push(match[1].trim());
+        }
+      }
+    }
+  });
+
+  filteredCities = [...new Set(filteredCities)].sort();
+
+  const previousSelectedCity = citySelect.value;
+  citySelect.innerHTML = `<option value="">Scegli la Città...</option>` +
+    filteredCities.map(c => `<option value="${c}">${c}</option>`).join("");
+
+  if (filteredCities.includes(previousSelectedCity)) {
+    citySelect.value = previousSelectedCity;
+  } else {
+    citySelect.value = "";
+  }
 }
 
 function openModal(id) {
@@ -2163,6 +2960,55 @@ function handlePartnershipSubmit(event) {
   event.target.reset();
 }
 
+function openAdoptionModal(dogId) {
+  const dog = state.partnerDogs.find(d => String(d.id) === String(dogId));
+  if (!dog) return;
+
+  document.getElementById("adoption-dog-id").value = dog.id;
+  document.getElementById("adoption-dog-name").value = `${dog.name} (${dog.breedName}) - ${dog.nomeCanile}`;
+  
+  if (state.isLoggedIn && state.userProfile) {
+    document.getElementById("adoption-user-name").value = state.userProfile.name || "";
+    document.getElementById("adoption-user-email").value = state.userProfile.email || "";
+  } else {
+    document.getElementById("adoption-user-name").value = "";
+    document.getElementById("adoption-user-email").value = "";
+  }
+  
+  document.getElementById("adoption-user-phone").value = "";
+  document.getElementById("adoption-message").value = `Ciao! Vorrei ricevere maggiori informazioni su ${dog.name} per una possibile adozione. Sarei felice di organizzare un incontro conoscitivo. Grazie!`;
+
+  openModal("adoption-modal");
+}
+
+function handleAdoptionSubmit(event) {
+  event.preventDefault();
+  const dogId = document.getElementById("adoption-dog-id").value;
+  const dog = state.partnerDogs.find(d => String(d.id) === String(dogId));
+  const dogName = dog ? dog.name : "questo ospite";
+  
+  const userName = document.getElementById("adoption-user-name").value;
+  const userPhone = document.getElementById("adoption-user-phone").value;
+  const userEmail = document.getElementById("adoption-user-email").value;
+
+  alert(`Grazie ${userName}! La tua richiesta d'adozione per ${dogName} è stata inviata con successo.\nIl canile ospitante (${dog ? dog.nomeCanile : 'la struttura'}) riceverà i tuoi dati e ti contatterà al numero ${userPhone} o via email all'indirizzo ${userEmail} entro 48 ore.`);
+  
+  if (dog) {
+    state.adoptionStatus = {
+      dogName: dog.name,
+      stepIndex: 0,
+      appointment: "In attesa di essere contattato da: " + dog.nomeCanile
+    };
+  }
+
+  event.target.reset();
+  closeModal("adoption-modal");
+
+  if (state.currentView === "account") {
+    renderCurrentView();
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // 8. INITIALIZATION & SETUP
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2171,6 +3017,8 @@ window.navigateTo = navigateTo;
 window.toggleFavorite = toggleFavorite;
 window.changeDashboardTab = changeDashboardTab;
 window.scrollToDashboard = scrollToDashboard;
+window.scrollToPartnerForm = scrollToPartnerForm;
+window.scrollToSteps = scrollToSteps;
 window.openAddDogModal = openAddDogModal;
 window.openEditDogModal = openEditDogModal;
 window.handleDeleteDog = handleDeleteDog;
@@ -2179,20 +3027,26 @@ window.openProfileModal = openProfileModal;
 window.handleProfileSubmit = handleProfileSubmit;
 window.closeModal = closeModal;
 window.handlePartnershipSubmit = handlePartnershipSubmit;
+window.openAdoptionModal = openAdoptionModal;
+window.handleAdoptionSubmit = handleAdoptionSubmit;
 window.selectQuizAnswer = selectQuizAnswer;
 window.prevQuizStep = prevQuizStep;
 window.nextQuizStep = nextQuizStep;
 window.resetQuiz = resetQuiz;
+window.handleLogout = handleLogout;
+window.handleLoginSubmit = handleLoginSubmit;
+window.changeBreedsPage = changeBreedsPage;
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   storage.loadFavorites();
   storage.loadProfile();
   storage.loadPartnerDogs();
+  storage.loadLoginState();
 
-  const welcomeBtn = document.getElementById("header-welcome-btn");
-  if (welcomeBtn) {
-    welcomeBtn.innerHTML = `<i data-lucide="user"></i> ${state.userProfile.name}`;
-  }
+  updateAuthUI();
+
+  // Carica i dati reali dal database
+  await loadDatabaseData();
 
   window.addEventListener("hashchange", handleRouting);
   handleRouting();
@@ -2204,3 +3058,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+

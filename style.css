@@ -209,6 +209,19 @@ nav a.active::after {
   box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
 }
 
+.btn-danger {
+  background-color: #E53E3E;
+  color: white;
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.btn-danger:hover {
+  background-color: #C53030;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(229, 62, 62, 0.4);
+}
+
+
 .btn-icon {
   background: none;
   border: none;
@@ -396,6 +409,29 @@ footer {
     transform: translateY(0);
   }
 }
+
+/* Staggered Fade-In entry animations for detail views */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    VIEWS SPECIFIC CSS
@@ -905,6 +941,11 @@ footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.breed-detail-image:hover img {
+  transform: scale(1.05);
 }
 
 .breed-detail-content {
@@ -943,6 +984,13 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: transform 0.3s var(--transition), box-shadow 0.3s var(--transition), border-color 0.3s var(--transition);
+}
+
+.spec-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
 }
 
 .spec-item.full-width {
@@ -971,6 +1019,12 @@ footer {
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  transition: transform 0.3s var(--transition), box-shadow 0.3s var(--transition);
+}
+
+.lo-sapevi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(56, 161, 105, 0.25);
 }
 
 .lo-sapevi-card svg {
@@ -1394,6 +1448,7 @@ footer {
   gap: 60px;
   align-items: flex-start;
   padding-bottom: 40px;
+  
 }
 
 .partnership-form-info {
@@ -2026,12 +2081,15 @@ footer {
 
 /* Steps Section: A passo di zampa */
 .steps-section {
-  padding: 80px 0 60px;
+  padding: 80px 20px 60px;
+  scroll-margin-top: 140px;
+  background-color: #e5e5e5;
 }
 
 .section-title-container {
   text-align: center;
   margin-bottom: 48px;
+ 
 }
 
 .section-title-container h2 {
@@ -2868,12 +2926,12 @@ footer {
   box-shadow: var(--shadow-sm);
 }
 
-.breed-energy-badge-overlay.energy-alto {
+.breed-energy-badge-overlay.energy-energia-alta {
   background-color: #E2E8F0;
   color: #2D3748;
 }
 
-.breed-energy-badge-overlay.energy-moderato {
+.breed-energy-badge-overlay.energy-energia-media {
   background-color: #EDF2F7;
   color: #4A5568;
 }
@@ -2958,6 +3016,13 @@ footer {
   transition: var(--transition);
 }
 
+.pagination-arrow-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
 .pagination-arrow-btn:hover {
   background-color: var(--light-gray);
   color: var(--dark);
@@ -2980,7 +3045,8 @@ footer {
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 .text-link-arrow {
-  color: var(--secondary);
+  background-color: var(--primary);
+  color: white;
   font-weight: 700;
   font-size: 16px;
   display: inline-flex;
@@ -2988,11 +3054,13 @@ footer {
   gap: 8px;
   text-decoration: none;
   transition: var(--transition);
-  padding: 12px 0;
+  padding: 10px 24px;
+  border-radius: var(--radius-full);
 }
 
 .text-link-arrow:hover {
-  color: var(--secondary-hover);
+  background-color: var(--primary-hover);
+  color: white;
 }
 
 .text-link-arrow i {
@@ -3636,4 +3704,210 @@ footer {
     font-size: 14px;
     padding: 11px 20px;
   }
+}
+
+/* Figma Redesign Elements */
+.badge-yellow {
+  background-color: #FEFCBF;
+  color: #B7791F;
+}
+
+.btn:disabled, .btn-disabled {
+  background-color: #E2E8F0 !important;
+  color: #718096 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.dog-card-badge-container {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.dog-card-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dog-card-location i {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5px;
+}
+
+.dog-card-shelter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dark-gray);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.dog-card-shelter i {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2px;
+}
+
+/* Floating breed badge "N.1 PER FAMIGLIE" */
+.breed-badge-floating {
+  position: absolute;
+  bottom: -20px;
+  right: 20px;
+  background-color: #C6F6D5;
+  color: #22543D;
+  padding: 12px 18px;
+  border-radius: var(--radius-full);
+  font-weight: 800;
+  font-size: 11px;
+  box-shadow: var(--shadow-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 5;
+  border: 2px solid white;
+}
+
+/* Redesigned specs grid & cards */
+.breed-specs-grid-figma {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.spec-item-figma {
+  background-color: #F3F4F6 !important;
+  border: none !important;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.3s var(--transition), box-shadow 0.3s var(--transition);
+}
+
+.spec-item-figma:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.spec-item-figma.full-width {
+  grid-column: span 2;
+}
+
+.spec-item-figma label {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--secondary) !important;
+  letter-spacing: 0.5px;
+}
+
+.spec-item-figma span {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* Green Banner Sei pronto a conoscere il tuo... */
+.breed-quiz-banner {
+  background-color: #48BB78;
+  border-radius: var(--radius-lg);
+  padding: 50px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  margin-top: 60px;
+}
+
+.breed-quiz-banner-content {
+  max-width: 600px;
+  z-index: 2;
+}
+
+.breed-quiz-banner h2 {
+  font-family: var(--font-headings);
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.breed-quiz-banner p {
+  font-size: 16px;
+  opacity: 0.95;
+  line-height: 1.6;
+}
+
+.breed-quiz-banner-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  z-index: 2;
+}
+
+.breed-quiz-banner .btn-white {
+  background-color: white;
+  color: #2F855A;
+  padding: 14px 28px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.breed-quiz-banner .btn-white:hover {
+  background-color: #F7FAFC;
+  transform: translateY(-2px);
+}
+
+.breed-quiz-banner .btn-outline-white {
+  background-color: transparent;
+  border: 2px solid white;
+  color: white;
+  padding: 12px 28px;
+  font-weight: 700;
+}
+
+.breed-quiz-banner .btn-outline-white:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.breed-quiz-banner-graphic {
+  position: relative;
+  width: 280px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.tilted-white-card {
+  width: 200px;
+  height: 240px;
+  background-color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  transform: rotate(10deg);
+  border: 1px solid var(--light-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 20px;
 }

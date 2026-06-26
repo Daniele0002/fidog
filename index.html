@@ -43,10 +43,12 @@
           </nav>
           
           <div class="header-actions">
-            <button class="btn btn-secondary" id="header-welcome-btn" onclick="navigateTo('#account')">
+            <!-- Mostrato solo quando loggato -->
+            <button class="btn btn-secondary" id="header-welcome-btn" onclick="navigateTo('#account')" style="display:none;">
               <i data-lucide="user"></i> Profilo
             </button>
-            <button class="btn btn-primary" onclick="navigateTo('#account')">Accedi</button>
+            <!-- Mostrato solo quando non loggato -->
+            <button class="btn btn-primary" id="header-login-btn" onclick="navigateTo('#account')">Accedi</button>
           </div>
 
           <!-- Mobile Hamburger Button -->
@@ -74,10 +76,10 @@
             <li><a href="#partner" onclick="closeMobileMenu()">Partner</a></li>
           </ul>
           <div class="mobile-nav-actions">
-            <button class="btn btn-secondary" style="width:100%;" onclick="navigateTo('#account'); closeMobileMenu()">
+            <button class="btn btn-secondary" id="mobile-welcome-btn" style="width:100%; display:none;" onclick="navigateTo('#account'); closeMobileMenu()">
               <i data-lucide="user"></i> Profilo
             </button>
-            <button class="btn btn-primary" style="width:100%;" onclick="navigateTo('#account'); closeMobileMenu()">Accedi</button>
+            <button class="btn btn-primary" id="mobile-login-btn" style="width:100%;" onclick="navigateTo('#account'); closeMobileMenu()">Accedi</button>
           </div>
         </nav>
       </div>
@@ -222,7 +224,52 @@
       </div>
     </div>
 
+    <!-- 3. ADOPTION CONTACT MODAL -->
+    <div id="adoption-modal" class="modal-overlay">
+      <div class="modal-box" style="max-width:500px;">
+        <button class="modal-close-btn" onclick="closeModal('adoption-modal')">×</button>
+        <div class="modal-header">
+          <h3>Richiesta di Adozione</h3>
+          <p>Compila il modulo per metterti in contatto con la struttura.</p>
+        </div>
+        <form id="adoption-contact-form" onsubmit="handleAdoptionSubmit(event)">
+          <input type="hidden" id="adoption-dog-id" name="dog_id" />
+          
+          <div class="form-group">
+            <label for="adoption-dog-name">Cane interessato</label>
+            <input type="text" id="adoption-dog-name" class="form-control" readonly style="background-color: var(--light-gray); cursor: not-allowed;" />
+          </div>
+
+          <div class="form-group">
+            <label for="adoption-user-name">Il tuo Nome</label>
+            <input type="text" id="adoption-user-name" class="form-control" required />
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label for="adoption-user-email">Email</label>
+              <input type="email" id="adoption-user-email" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label for="adoption-user-phone">Telefono</label>
+              <input type="tel" id="adoption-user-phone" class="form-control" required placeholder="Es. 3471234567" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adoption-message">Messaggio per il Canile</label>
+            <textarea id="adoption-message" class="form-control" rows="4" required style="resize: vertical;"></textarea>
+          </div>
+
+          <div class="modal-footer" style="margin-top: 20px;">
+            <button type="button" class="btn btn-secondary btn-close-modal" onclick="closeModal('adoption-modal')">Annulla</button>
+            <button type="submit" class="btn btn-primary">Invia Richiesta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Application Script (Relative Path) -->
-    <script src="./app.js"></script>
+    <script src="./app.js?v=1.0.1"></script>
   </body>
 </html>
