@@ -1,11 +1,8 @@
-/**
- * FIDOG Application Core
- * Vanilla JS SPA with state management, custom routing, and interactive elements.
- */
+// ─────────────────────────────────────────────
+// FIDOG — Core Application
+// ─────────────────────────────────────────────
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 1. MOCK DATABASE (DOGS & BREEDS)
-// ═══════════════════════════════════════════════════════════════════════════════
+// Static breed data (used as fallback for API results)
 
 const BREEDS_DB = [
   {
@@ -82,96 +79,10 @@ const BREEDS_DB = [
   }
 ];
 
-const DOGS_DB = [
-  {
-    id: "dog-rocky",
-    name: "Rocky",
-    breedId: "border-collie",
-    breedName: "Border Collie",
-    age: "2 Anni",
-    gender: "Maschio",
-    location: "Milano (MI)",
-    status: "DISPONIBILE",
-    trained: true,
-    medical: "Castrato",
-    tags: ["Socievole", "Energico"],
-    image: "https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47?auto=format&fit=crop&q=80&w=500"
-  },
-  {
-    id: "dog-luna",
-    name: "Luna",
-    breedId: "meticcio",
-    breedName: "Meticcio",
-    age: "4 Anni",
-    gender: "Femmina",
-    location: "Milano (MI)",
-    status: "IN PROVA",
-    trained: true,
-    medical: "Sterilizzato",
-    tags: ["Calma", "Obbediente"],
-    image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=500"
-  },
-  {
-    id: "dog-briciola",
-    name: "Briciola",
-    breedId: "meticcio",
-    breedName: "Puppy",
-    age: "6 Mesi",
-    gender: "Maschio",
-    location: "Roma (RM)",
-    status: "DISPONIBILE",
-    trained: false,
-    medical: "Nessuno",
-    tags: ["Affettuoso", "Giocherellone"],
-    image: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?auto=format&fit=crop&q=80&w=500"
-  },
-  {
-    id: "dog-kaiser",
-    name: "Kaiser",
-    breedId: "meticcio",
-    breedName: "Pastore Tedesco Mix",
-    age: "5 Anni",
-    gender: "Maschio",
-    location: "Roma (RM)",
-    status: "DISPONIBILE",
-    trained: true,
-    medical: "Castrato",
-    tags: ["Protettivo", "Fedele"],
-    image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?auto=format&fit=crop&q=80&w=500"
-  },
-  {
-    id: "dog-rex",
-    name: "Rex",
-    breedId: "golden-retriever",
-    breedName: "Golden Retriever",
-    age: "3 Anni",
-    gender: "Maschio",
-    location: "Roma (RM)",
-    status: "DISPONIBILE",
-    trained: true,
-    medical: "Castrato",
-    tags: ["Affettuoso", "Amichevole"],
-    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=500"
-  },
-  {
-    id: "dog-kira",
-    name: "Kira",
-    breedId: "french-bulldog",
-    breedName: "Bulldog Francese",
-    age: "1 Anno",
-    gender: "Femmina",
-    location: "Milano (MI)",
-    status: "DISPONIBILE",
-    trained: false,
-    medical: "Sterilizzato",
-    tags: ["Buffa", "Pigra"],
-    image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=500"
-  }
-];
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 2. GLOBAL STATE
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// GLOBAL STATE
+// ─────────────────────────────────────────────
 
 const state = {
   currentView: "home",
@@ -202,7 +113,7 @@ const state = {
       tempo: null // "poco", "medio", "molto"
     }
   },
-  partnerDogs: [...DOGS_DB],
+  partnerDogs: [],
   stats: {
     caniOspitati: 42,
     adozioniMese: 8,
@@ -212,7 +123,7 @@ const state = {
   editingDogId: null
 };
 
-// LocalStorage helpers to persist changes
+// LocalStorage helpers
 const storage = {
   saveFavorites: () => {
     localStorage.setItem("fidog_favorites", JSON.stringify(state.favorites));
@@ -253,9 +164,9 @@ const storage = {
   }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 3. ROUTING ENGINE
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// ROUTING
+// ─────────────────────────────────────────────
 
 function navigateTo(hash) {
   closeMobileMenu();
@@ -336,9 +247,9 @@ function updateHeaderNavLinks() {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 4. RENDERING VIEWS
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// VIEW RENDERING
+// ─────────────────────────────────────────────
 
 const viewContainer = document.getElementById("app-view");
 
@@ -385,14 +296,11 @@ function renderCurrentView() {
   bindViewEvents();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: HOME
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderHome() {
   return `
     <div class="view-section">
-      <!-- Hero Section -->
       <section class="hero">
         <div class="hero-content">
           <span class="badge badge-green">Oltre 500 canili partner in tutta Italia</span>
@@ -407,7 +315,6 @@ function renderHome() {
           <div class="hero-image">
             <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=800" alt="Cane Felice Fidog" />
           </div>
-          <!-- Floating card over hero image -->
           <div class="hero-floating-card">
             <div class="floating-card-icon">
               <i data-lucide="check-circle-2"></i>
@@ -420,14 +327,12 @@ function renderHome() {
         </div>
       </section>
 
-      <!-- Steps Section: A passo di zampa -->
       <section class="steps-section" id="steps-section">
         <div class="section-title-container">
           <h2>A passo di zampa</h2>
           <p>Quattro semplici passi per accogliere un nuovo membro nella tua famiglia in totale serenità.</p>
         </div>
         <div class="steps-grid">
-          <!-- Step 1 -->
           <div class="step-card">
             <div class="step-icon-wrapper color-1">
               <i data-lucide="clipboard-list"></i>
@@ -435,7 +340,6 @@ function renderHome() {
             <h3>Questionario</h3>
             <p>Raccontaci chi sei, le tue abitudini e lo spazio che hai a disposizione per il tuo futuro cane.</p>
           </div>
-          <!-- Step 2 -->
           <div class="step-card">
             <div class="step-icon-wrapper color-2">
               <i data-lucide="users"></i>
@@ -443,7 +347,6 @@ function renderHome() {
             <h3>Match</h3>
             <p>Il nostro sistema trova i profili che meglio si adattano alle tue risposte tra centinaia di canili.</p>
           </div>
-          <!-- Step 3 -->
           <div class="step-card">
             <div class="step-icon-wrapper color-3">
               <i data-lucide="paw-print"></i>
@@ -451,7 +354,6 @@ function renderHome() {
             <h3>Incontro</h3>
             <p>Organizziamo il primo incontro conoscitivo presso la struttura ospitante con il supporto di esperti.</p>
           </div>
-          <!-- Step 4 -->
           <div class="step-card">
             <div class="step-icon-wrapper color-4">
               <i data-lucide="home"></i>
@@ -462,7 +364,6 @@ function renderHome() {
         </div>
       </section>
 
-      <!-- Popular Breeds Section -->
       <section class="popular-section">
         <div class="popular-section-header">
           <div class="header-titles">
@@ -472,7 +373,6 @@ function renderHome() {
           <a href="#razze" class="explore-link">Esplora tutto l'elenco <i data-lucide="arrow-right"></i></a>
         </div>
         <div class="popular-grid">
-          <!-- Card 1: Border Collie -->
           <div class="popular-card" onclick="navigateTo('#dettaglio/border-collie')">
             <div class="popular-image-container">
               <img src="https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47?auto=format&fit=crop&q=80&w=800" alt="Border Collie" />
@@ -487,7 +387,6 @@ function renderHome() {
             </div>
           </div>
 
-          <!-- Card 2: Labrador Retriever -->
           <div class="popular-card" onclick="navigateTo('#dettaglio/labrador-retriever')">
             <div class="popular-image-container">
               <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&q=80&w=800" alt="Labrador Retriever" />
@@ -502,7 +401,6 @@ function renderHome() {
             </div>
           </div>
 
-          <!-- Card 3: Bulldog Francese -->
           <div class="popular-card" onclick="navigateTo('#dettaglio/french-bulldog')">
             <div class="popular-image-container">
               <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=800" alt="Bulldog Francese" />
@@ -519,7 +417,6 @@ function renderHome() {
         </div>
       </section>
 
-      <!-- Green Quiz CTA Banner -->
       <section class="green-cta-banner">
         <div class="green-cta-content">
           <div class="green-cta-paw-icon">
@@ -588,9 +485,7 @@ function renderDogCard(dog) {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: RAZZE (BREEDS)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderRazze() {
 
@@ -828,9 +723,7 @@ function renderRazze() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: BREED DETAIL
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderDettaglio() {
   const breed = state.breeds.find(b => b.id === state.selectedBreedId) || state.breeds[0];
@@ -917,7 +810,6 @@ function renderDettaglio() {
         ${availableDogsHtml}
       </section>
 
-      <!-- Bottom Quiz Banner -->
       <section class="breed-quiz-banner">
         <div class="breed-quiz-banner-content">
           <h2>Sei pronto a conoscere il tuo ${breed.name}?</h2>
@@ -937,9 +829,7 @@ function renderDettaglio() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: DOG DETAIL
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderCaneDetail() {
   const dog = state.partnerDogs.find(d => String(d.id) === String(state.selectedDogId));
@@ -1051,9 +941,7 @@ function renderCaneDetail() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: CHI SIAMO (ABOUT US)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderChiSiamo() {
   return `
@@ -1198,9 +1086,7 @@ function renderChiSiamo() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: PARTNER
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderPartner() {
   const dashboardHtml = renderDashboard();
@@ -1230,7 +1116,6 @@ function renderPartner() {
           <p>Soluzioni digitali pensate per chi vive quotidianamente il mondo cinofilo.</p>
         </div>
         <div class="value-prop-grid">
-          <!-- Card 1: Massima Visibilità (WIDE, LIGHT) -->
           <div class="value-prop-card card-wide card-light">
             <div class="card-content">
               <div class="value-prop-icon-wrapper eye-wrapper">
@@ -1244,7 +1129,6 @@ function renderPartner() {
             </div>
           </div>
 
-          <!-- Card 2: Matching Certificato (NARROW, SOLID ORANGE) -->
           <div class="value-prop-card card-narrow solid-orange">
             <div class="value-prop-icon-wrapper white-bg">
               <i data-lucide="shield-check" class="orange-icon"></i>
@@ -1254,7 +1138,6 @@ function renderPartner() {
             <a href="#" class="solid-card-link">Saperne di più &gt;</a>
           </div>
 
-          <!-- Card 3: Dati Semplificati (NARROW, SOLID GREEN) -->
           <div class="value-prop-card card-narrow solid-green card-centered">
             <div class="value-prop-icon-wrapper white-bg">
               <i data-lucide="list" class="green-icon"></i>
@@ -1263,7 +1146,6 @@ function renderPartner() {
             <p>Addio registri cartacei. Gestisci anamnesi, cartelle cliniche e stati comportamentali con un click dal tuo smartphone o PC.</p>
           </div>
 
-          <!-- Card 4: Network Provinciale (WIDE, LIGHT) -->
           <div class="value-prop-card card-wide card-light card-row-reverse">
             <div class="card-graphic">
               <div class="card-graphic-placeholder"></div>
@@ -1482,44 +1364,32 @@ function renderPartner() {
 }
 
 function renderDashboard() {
-  const activeClass = (tab) => state.dashboardTab === tab ? "active" : "";
-  
-  let mainContentHtml = "";
-  
-  if (state.dashboardTab === "dashboard") {
-    const tableRows = state.partnerDogs
-      .map(dog => `
-        <tr>
-          <td>
-            <div class="table-dog-name">
-              <div class="table-dog-avatar">
-                <img src="${dog.image}" alt="${dog.name}" />
-              </div>
-              <span>${dog.name}</span>
-            </div>
-          </td>
-          <td>${dog.location}</td>
-          <td>
-            <span class="badge ${dog.status === 'DISPONIBILE' ? 'badge-green' : 'badge-orange'}">${dog.status}</span>
-          </td>
-          <td>
-            <div class="table-actions">
-              <button class="table-action-btn table-action-btn-edit" onclick="openEditDogModal('${dog.id}', event)">
-                <i data-lucide="edit" style="width:16px; height:16px;"></i>
-              </button>
-              <button class="table-action-btn table-action-btn-delete" onclick="handleDeleteDog('${dog.id}', event)">
-                <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `)
-      .join("");
+  return `
+    <aside class="dashboard-sidebar" style="cursor: default; user-select: none;">
+      <ul class="dashboard-menu">
+        <li style="font-family: var(--font-headings); font-size: 20px; font-weight: 800; color: var(--secondary); margin-bottom: 20px; padding: 0 16px; list-style: none;">FIDOG Hub</li>
+        <li class="dashboard-menu-item active" style="background-color: var(--secondary); color: white; cursor: default;">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </li>
+        <li class="dashboard-menu-item" style="cursor: default; opacity: 0.7;">
+          <i data-lucide="paw-print"></i> Cani
+        </li>
+        <li class="dashboard-menu-item" style="cursor: default; opacity: 0.7;">
+          <i data-lucide="home"></i> Canili
+        </li>
+        <li class="dashboard-menu-item" style="cursor: default; opacity: 0.7;">
+          <i data-lucide="file-text"></i> Questionari
+        </li>
+      </ul>
+      <div class="dashboard-menu-footer" style="cursor: default; opacity: 0.7;">
+        <i data-lucide="settings"></i> Impostazioni
+      </div>
+    </aside>
 
-    mainContentHtml = `
+    <div class="dashboard-content" style="cursor: default; user-select: none;">
       <div class="dashboard-content-header">
         <h3>Gestione Canile "Oasi Serena"</h3>
-        <button class="btn btn-primary" onclick="openAddDogModal(event)">
+        <button class="btn" style="background-color: var(--secondary); color: white; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; border-radius: var(--radius-sm); border: none; padding: 10px 18px; cursor: default; pointer-events: none;">
           <i data-lucide="plus"></i> Nuovo Cane
         </button>
       </div>
@@ -1527,15 +1397,15 @@ function renderDashboard() {
       <div class="dashboard-stats-grid">
         <div class="dashboard-stat-card">
           <label>Cani Ospitati</label>
-          <span>${state.partnerDogs.length}</span>
+          <span>42</span>
         </div>
         <div class="dashboard-stat-card">
           <label>Adozioni questo mese</label>
-          <span>${state.stats.adozioniMese}</span>
+          <span>8</span>
         </div>
         <div class="dashboard-stat-card">
           <label>In attesa matching</label>
-          <span>${state.stats.attesaMatching}</span>
+          <span>15</span>
         </div>
       </div>
 
@@ -1550,51 +1420,53 @@ function renderDashboard() {
             </tr>
           </thead>
           <tbody>
-            ${tableRows.length > 0 ? tableRows : '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--dark-gray);">Nessun cane registrato nel database. Clicca su "Nuovo Cane" per aggiungerne uno.</td></tr>'}
+            <tr>
+              <td>
+                <div class="table-dog-name">
+                  <div class="table-dog-avatar" style="background-color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; color: white;">
+                    <i data-lucide="dog" style="width: 16px; height: 16px;"></i>
+                  </div>
+                  <span>Rex</span>
+                </div>
+              </td>
+              <td>Roma (RM)</td>
+              <td>
+                <span class="badge badge-green">DISPONIBILE</span>
+              </td>
+              <td>
+                <div class="table-actions" style="pointer-events: none;">
+                  <button class="table-action-btn table-action-btn-edit" style="cursor: default;"><i data-lucide="edit" style="width:16px; height:16px;"></i></button>
+                  <button class="table-action-btn table-action-btn-delete" style="cursor: default;"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="table-dog-name">
+                  <div class="table-dog-avatar" style="background-color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; color: white;">
+                    <i data-lucide="dog" style="width: 16px; height: 16px;"></i>
+                  </div>
+                  <span>Luna</span>
+                </div>
+              </td>
+              <td>Milano (MI)</td>
+              <td>
+                <span class="badge" style="background-color: #ffedd5; color: #ea580c;">IN CORSO</span>
+              </td>
+              <td>
+                <div class="table-actions" style="pointer-events: none;">
+                  <button class="table-action-btn table-action-btn-edit" style="cursor: default;"><i data-lucide="edit" style="width:16px; height:16px;"></i></button>
+                  <button class="table-action-btn table-action-btn-delete" style="cursor: default;"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
-    `;
-  } else {
-    mainContentHtml = `
-      <div class="dashboard-content-header">
-        <h3 style="text-transform: capitalize;">Sezione ${state.dashboardTab}</h3>
-      </div>
-      <div style="background-color:white; border-radius:var(--radius-md); padding:60px 40px; text-align:center; border: 1px dashed var(--light-gray);">
-        <i data-lucide="lock" style="width:48px; height:48px; color:var(--dark-gray); margin-bottom:16px;"></i>
-        <h4>Area Riservata</h4>
-        <p style="color:var(--dark-gray); margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">Questa sezione fa parte del pacchetto gestionale completo FIDOG Hub e sarà sbloccata una volta completata la partnership.</p>
-      </div>
-    `;
-  }
-
-  return `
-    <aside class="dashboard-sidebar">
-      <ul class="dashboard-menu">
-        <li class="dashboard-menu-item ${activeClass('dashboard')}" onclick="changeDashboardTab('dashboard')">
-          <i data-lucide="layout-dashboard"></i> Dashboard
-        </li>
-        <li class="dashboard-menu-item ${activeClass('cani')}" onclick="changeDashboardTab('cani')">
-          <i data-lucide="dog"></i> Cani
-        </li>
-        <li class="dashboard-menu-item ${activeClass('canili')}" onclick="changeDashboardTab('canili')">
-          <i data-lucide="home"></i> Canili
-        </li>
-        <li class="dashboard-menu-item ${activeClass('questionari')}" onclick="changeDashboardTab('questionari')">
-          <i data-lucide="clipboard-list"></i> Questionari
-        </li>
-      </ul>
-      
-      <div class="dashboard-menu-footer">
-        <i data-lucide="settings"></i> Impostazioni
-      </div>
-    </aside>
-    
-    <div class="dashboard-content">
-      ${mainContentHtml}
     </div>
   `;
 }
+
 
 function changeDashboardTab(tab) {
   state.dashboardTab = tab;
@@ -1629,9 +1501,7 @@ function scrollToSteps() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: ACCOUNT
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderLogin() {
   return `
@@ -1803,9 +1673,7 @@ function renderAccount() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // VIEW: QUESTIONARIO (QUIZ)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderQuestionario() {
   const step = state.questionnaire.step;
@@ -2069,9 +1937,7 @@ function triggerConfetti() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // 5. EVENT BINDINGS & HANDLERS
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function bindViewEvents() {
   if (state.currentView === "razze") {
@@ -2395,9 +2261,7 @@ function toggleFavorite(id, event) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // 6. CRUD FOR SHELTER DOGS (DASHBOARD)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function openAddDogModal(event) {
   event.preventDefault();
@@ -2433,73 +2297,80 @@ function openEditDogModal(id, event) {
   openModal("crud-modal");
 }
 
-function handleCrudSubmit(event) {
+async function handleCrudSubmit(event) {
   event.preventDefault();
 
-  const name = document.getElementById("crud-dog-name").value.trim();
-  const location = document.getElementById("crud-dog-provenienza").value;
-  const status = document.getElementById("crud-dog-stato").value;
-  const age = document.getElementById("crud-dog-eta").value;
-  const gender = document.getElementById("crud-dog-sesso").value;
-  const tagVal = document.getElementById("crud-dog-tag").value;
-  const breedId = document.getElementById("crud-dog-breed").value;
-  const breedObj = state.breeds.find(b => b.id === breedId) || state.breeds[0];
+  const name      = document.getElementById("crud-dog-name").value.trim();
+  const location  = document.getElementById("crud-dog-provenienza").value;
+  const status    = document.getElementById("crud-dog-stato").value;
+  const age       = document.getElementById("crud-dog-eta").value;
+  const gender    = document.getElementById("crud-dog-sesso").value;
+  const tag       = document.getElementById("crud-dog-tag").value;
+  const breedId   = document.getElementById("crud-dog-breed").value;
 
   if (!name) return;
 
-  const defaultImages = [
-    "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=500",
-    "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=500",
-    "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=500"
-  ];
+  const payload = {
+    nome: name,
+    sesso: gender === "Maschio" ? "M" : "F",
+    eta: age,
+    storia: "Un dolce ospite del nostro canile.",
+    razza_id: isNaN(breedId) ? breedId : parseInt(breedId, 10),
+    canile_id: 58, // Oasi Serena
+    stato: status.toLowerCase(),
+    tag: tag
+  };
 
   if (state.editingDogId) {
-    const index = state.partnerDogs.findIndex(d => d.id === state.editingDogId);
-    if (index > -1) {
-      state.partnerDogs[index].name = name;
-      state.partnerDogs[index].location = location;
-      state.partnerDogs[index].status = status;
-      state.partnerDogs[index].age = age;
-      state.partnerDogs[index].gender = gender;
-      state.partnerDogs[index].tags = [tagVal, "Oasi Serena"];
-      state.partnerDogs[index].breedId = breedId;
-      state.partnerDogs[index].breedName = breedObj.name;
-    }
-  } else {
-    const newId = `dog-${Date.now()}`;
-    const randImg = defaultImages[Math.floor(Math.random() * defaultImages.length)];
-    
-    state.partnerDogs.push({
-      id: newId,
-      name: name,
-      breedId: breedId,
-      breedName: breedObj.name,
-      age: age,
-      gender: gender,
-      location: location,
-      status: status,
-      tags: [tagVal, "Nuovo Ospite"],
-      image: randImg
-    });
+    payload.id = state.editingDogId;
   }
 
-  storage.savePartnerDogs();
-  closeModal("crud-modal");
-  renderCurrentView();
+  try {
+    const res = await fetch(API_BASE + "cani.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include"
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      closeModal("crud-modal");
+      // Ricarica la lista aggiornata dal database
+      await loadDatabaseData();
+      renderCurrentView();
+    } else {
+      alert("Errore nel salvataggio: " + (result.error || "Riprova"));
+    }
+  } catch (error) {
+    console.error("Errore durante l'operazione CRUD:", error);
+    alert("Impossibile connettersi al server per completare l'operazione.");
+  }
 }
 
-function handleDeleteDog(id, event) {
+async function handleDeleteDog(id, event) {
   event.preventDefault();
   if (confirm("Sei sicuro di voler eliminare questo cane dal database?")) {
-    state.partnerDogs = state.partnerDogs.filter(d => d.id !== id);
-    storage.savePartnerDogs();
-    renderCurrentView();
+    try {
+      const res = await fetch(API_BASE + `cani.php?id=${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        // Ricarica la lista dal database
+        await loadDatabaseData();
+        renderCurrentView();
+      } else {
+        alert("Errore nell'eliminazione: " + (result.error || "Riprova"));
+      }
+    } catch (error) {
+      console.error("Errore durante l'eliminazione:", error);
+      alert("Impossibile eliminare l'elemento sul server.");
+    }
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // 7. USER PROFILE & MODALS
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function openProfileModal(event) {
   event.preventDefault();
@@ -3028,9 +2899,7 @@ function handleAdoptionSubmit(event) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // 8. INITIALIZATION & SETUP
-// ═══════════════════════════════════════════════════════════════════════════════
 
 window.navigateTo = navigateTo;
 window.toggleFavorite = toggleFavorite;

@@ -1,275 +1,237 @@
 <!doctype html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FIDOG - Connettiamo cuori e code, con professionalità</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="FIDOG: Il portale italiano dedicato all'adozione responsabile di cani. Trova il compagno ideale grazie al nostro test di compatibilità intelligente e canili certificati." />
-    <meta name="keywords" content="adozione cani, adozione responsabile, canili italia, fidog, trovare cane, razze cani, quiz cani" />
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIDOG - Connettiamo cuori e code, con professionalità</title>
+  <meta name="description" content="FIDOG: Il portale italiano dedicato all'adozione responsabile di cani. Trova il compagno ideale grazie al nostro test di compatibilità intelligente e canili certificati.">
+  <meta name="keywords" content="adozione cani, adozione responsabile, canili italia, fidog, trovare cane, razze cani, quiz cani">
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
 
-    <!-- Style Sheet (Relative Path) -->
-    <link rel="stylesheet" href="./style.css" />
-    <link rel="icon" type="image/png" href="img/favicon.png"/>
+  <div id="app-container">
 
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <header>
+      <div class="header-inner">
+        <div class="logo" onclick="navigateTo('#home')">
+          <img src="img/logo.svg" alt="FIDOG" style="height:36px; width:auto;">
+        </div>
+        <nav>
+          <ul>
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#razze">Razze</a></li>
+            <li><a href="#chisiamo">Chi Siamo</a></li>
+            <li><a href="#partner">Partner</a></li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="header-welcome-btn" onclick="navigateTo('#account')" style="display:none;">
+            <i data-lucide="user"></i> Profilo
+          </button>
+          <button class="btn btn-primary" id="header-login-btn" onclick="navigateTo('#account')">Accedi</button>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+          <i data-lucide="menu" id="mobile-menu-icon"></i>
+        </button>
+      </div>
+    </header>
 
-    <!-- Canvas Confetti CDN for matches celebration -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  </head>
-  <body>
-    <div id="app-container">
-      <!-- Global Header -->
-      <header>
-        <div class="header-inner">
-          <div class="logo" onclick="navigateTo('#home')">
-            <img src="img/logo.png" alt="FIDOG" style="height:36px; width:auto; max-width:140px;">
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileMenu()">
+      <nav class="mobile-nav" id="mobile-nav" onclick="event.stopPropagation()">
+        <div class="mobile-nav-header">
+          <div class="logo">
+            <img src="img/logo.svg" alt="FIDOG" style="height:32px; width:auto;">
           </div>
-          
-          <nav>
-            <ul>
-              <li><a href="#home" class="active">Home</a></li>
-              <li><a href="#razze">Razze</a></li>
-              <li><a href="#chisiamo">Chi Siamo</a></li>
-              <li><a href="#partner">Partner</a></li>
-            </ul>
-          </nav>
-          
-          <div class="header-actions">
-            <!-- Mostrato solo quando loggato -->
-            <button class="btn btn-secondary" id="header-welcome-btn" onclick="navigateTo('#account')" style="display:none;">
-              <i data-lucide="user"></i> Profilo
-            </button>
-            <!-- Mostrato solo quando non loggato -->
-            <button class="btn btn-primary" id="header-login-btn" onclick="navigateTo('#account')">Accedi</button>
-          </div>
-
-          <!-- Mobile Hamburger Button -->
-          <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
-            <i data-lucide="menu" id="mobile-menu-icon"></i>
+          <button class="mobile-nav-close" onclick="closeMobileMenu()">
+            <i data-lucide="x"></i>
           </button>
         </div>
-      </header>
+        <ul class="mobile-nav-links">
+          <li><a href="#home" onclick="closeMobileMenu()">Home</a></li>
+          <li><a href="#razze" onclick="closeMobileMenu()">Razze</a></li>
+          <li><a href="#chisiamo" onclick="closeMobileMenu()">Chi Siamo</a></li>
+          <li><a href="#partner" onclick="closeMobileMenu()">Partner</a></li>
+        </ul>
+        <div class="mobile-nav-actions">
+          <button class="btn btn-secondary" id="mobile-welcome-btn" style="width:100%; display:none;" onclick="navigateTo('#account'); closeMobileMenu()">
+            <i data-lucide="user"></i> Profilo
+          </button>
+          <button class="btn btn-primary" id="mobile-login-btn" style="width:100%;" onclick="navigateTo('#account'); closeMobileMenu()">Accedi</button>
+        </div>
+      </nav>
+    </div>
 
-      <!-- Mobile Nav Overlay -->
-      <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileMenu()">
-        <nav class="mobile-nav" id="mobile-nav" onclick="event.stopPropagation()">
-          <div class="mobile-nav-header">
-            <div class="logo">
-              <img src="img/logo.png" alt="FIDOG" style="height:32px; width:auto;">
-            </div>
-            <button class="mobile-nav-close" onclick="closeMobileMenu()">
-              <i data-lucide="x"></i>
-            </button>
+    <main id="app-view"></main>
+
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="logo" onclick="navigateTo('#home')">
+            <img src="img/logo.svg" alt="FIDOG" style="height:36px; width:auto;">
           </div>
-          <ul class="mobile-nav-links">
-            <li><a href="#home" onclick="closeMobileMenu()">Home</a></li>
-            <li><a href="#razze" onclick="closeMobileMenu()">Razze</a></li>
-            <li><a href="#chisiamo" onclick="closeMobileMenu()">Chi Siamo</a></li>
-            <li><a href="#partner" onclick="closeMobileMenu()">Partner</a></li>
+          <ul class="footer-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#razze">Razze</a></li>
+            <li><a href="#chisiamo">Chi Siamo</a></li>
+            <li><a href="#partner">Partner</a></li>
+            <li><a href="#chisiamo">Contatti</a></li>
           </ul>
-          <div class="mobile-nav-actions">
-            <button class="btn btn-secondary" id="mobile-welcome-btn" style="width:100%; display:none;" onclick="navigateTo('#account'); closeMobileMenu()">
-              <i data-lucide="user"></i> Profilo
-            </button>
-            <button class="btn btn-primary" id="mobile-login-btn" style="width:100%;" onclick="navigateTo('#account'); closeMobileMenu()">Accedi</button>
-          </div>
-        </nav>
-      </div>
-
-      <!-- Main Dynamic Content Container -->
-      <main id="app-view">
-        <!-- Views injected by app.js -->
-      </main>
-
-      <!-- Global Footer -->
-      <footer>
-        <div class="footer-inner">
-          <div class="footer-top">
-            <div class="logo" onclick="navigateTo('#home')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dog">
-                <path d="M11.25 16.25h1.5L12 18l-.75-1.75Z"/>
-                <path d="M16 14v1a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1"/>
-                <path d="M18.5 4c.6 0 1 .4 1 1v7.6c0 .8-.5 1.5-1.2 1.8l-3.3 1.2c-.6.2-1 .8-1 1.4V19c0 1.1-.9 2-2 2h-1c-1.1 0-2-.9-2-2v-2c0-.6-.4-1.2-1-1.4l-3.3-1.2A2 2 0 0 1 4.5 13.6V5c0-.6.4-1 1-1h13Z"/>
-                <path d="M9 9h.01"/>
-                <path d="M15 9h.01"/>
-              </svg>
-              <span>FIDOG</span>
-            </div>
-            <ul class="footer-links">
-              <li><a href="#home">Home</a></li>
-              <li><a href="#razze">Razze</a></li>
-              <li><a href="#chisiamo">Chi Siamo</a></li>
-              <li><a href="#partner">Partner</a></li>
-              <li><a href="#chisiamo">Contatti</a></li>
-            </ul>
-          </div>
-          <div class="footer-bottom">
-            <span>© 2026 FIDOG - Connettiamo cuori e code, con professionalità.</span>
-            <div style="display:flex; gap:16px;">
-              <span>Privacy Policy</span>
-              <span>Termini di Servizio</span>
-            </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 FIDOG - Connettiamo cuori e code, con professionalità.</span>
+          <div style="display:flex; gap:16px;">
+            <span>Privacy Policy</span>
+            <span>Termini di Servizio</span>
           </div>
         </div>
-      </footer>
-    </div>
-
-    <!-- Modals System -->
-    
-    <!-- 1. PROFILE MODAL -->
-    <div id="profile-modal" class="modal-overlay">
-      <div class="modal-box">
-        <button class="modal-close-btn" onclick="closeModal('profile-modal')">×</button>
-        <div class="modal-header">
-          <h3>Modifica Profilo</h3>
-        </div>
-        <form id="profile-edit-form" onsubmit="handleProfileSubmit(event)">
-          <div class="form-group">
-            <label for="profile-name">Nome Completo</label>
-            <input type="text" id="profile-name" class="form-control" placeholder="es. Dani" required />
-          </div>
-          <div class="form-group">
-            <label for="profile-location">Città / Provincia</label>
-            <input type="text" id="profile-location" class="form-control" placeholder="es. Milano, Italia" required />
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary btn-close-modal" onclick="closeModal('profile-modal')">Annulla</button>
-            <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-          </div>
-        </form>
       </div>
-    </div>
+    </footer>
 
-    <!-- 2. CRUD ADD/EDIT DOG MODAL -->
-    <div id="crud-modal" class="modal-overlay">
-      <div class="modal-box" style="max-width:550px;">
-        <button class="modal-close-btn" onclick="closeModal('crud-modal')">×</button>
-        <div class="modal-header">
-          <h3 id="crud-modal-title">Nuovo Cane</h3>
-        </div>
-        <form id="crud-dog-form" onsubmit="handleCrudSubmit(event)">
-          <div class="form-group">
-            <label for="crud-dog-name">Nome del Cane</label>
-            <input type="text" id="crud-dog-name" class="form-control" placeholder="es. Rex" required />
-          </div>
+  </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="crud-dog-breed">Razza</label>
-              <select id="crud-dog-breed" class="form-control" required>
-                <option value="golden-retriever">Golden Retriever</option>
-                <option value="border-collie">Border Collie</option>
-                <option value="french-bulldog">Bulldog Francese</option>
-                <option value="labrador-retriever">Labrador Retriever</option>
-                <option value="cocker-spaniel">Cocker Spaniel</option>
-                <option value="meticcio">Meticcio</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="crud-dog-provenienza">Provenienza / Location</label>
-              <input type="text" id="crud-dog-provenienza" class="form-control" placeholder="es. Roma (RM)" required />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="crud-dog-eta">Età</label>
-              <input type="text" id="crud-dog-eta" class="form-control" placeholder="es. 2 Anni" required />
-            </div>
-            <div class="form-group">
-              <label for="crud-dog-sesso">Sesso</label>
-              <select id="crud-dog-sesso" class="form-control" required>
-                <option value="Maschio">Maschio</option>
-                <option value="Femmina">Femmina</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="crud-dog-stato">Stato Adozione</label>
-              <select id="crud-dog-stato" class="form-control" required>
-                <option value="DISPONIBILE">Disponibile</option>
-                <option value="IN PROVA">In Prova</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="crud-dog-tag">Tratto Caratteristico</label>
-              <select id="crud-dog-tag" class="form-control" required>
-                <option value="Affettuoso">Affettuoso</option>
-                <option value="Socievole">Socievole</option>
-                <option value="Energico">Energico</option>
-                <option value="Calmo">Calmo</option>
-                <option value="Giocherellone">Giocherellone</option>
-                <option value="Obbediente">Obbediente</option>
-                <option value="Protettivo">Protettivo</option>
-                <option value="Fedele">Fedele</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary btn-close-modal" onclick="closeModal('crud-modal')">Annulla</button>
-            <button type="submit" class="btn btn-primary">Salva Cane</button>
-          </div>
-        </form>
+  <!-- Modal: Modifica Profilo -->
+  <div id="profile-modal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeModal('profile-modal')">×</button>
+      <div class="modal-header">
+        <h3>Modifica Profilo</h3>
       </div>
-    </div>
-
-    <!-- 3. ADOPTION CONTACT MODAL -->
-    <div id="adoption-modal" class="modal-overlay">
-      <div class="modal-box" style="max-width:500px;">
-        <button class="modal-close-btn" onclick="closeModal('adoption-modal')">×</button>
-        <div class="modal-header">
-          <h3>Richiesta di Adozione</h3>
-          <p>Compila il modulo per metterti in contatto con la struttura.</p>
+      <form id="profile-edit-form" onsubmit="handleProfileSubmit(event)">
+        <div class="form-group">
+          <label for="profile-name">Nome Completo</label>
+          <input type="text" id="profile-name" class="form-control" placeholder="es. Dani" required>
         </div>
-        <form id="adoption-contact-form" onsubmit="handleAdoptionSubmit(event)">
-          <input type="hidden" id="adoption-dog-id" name="dog_id" />
-          
-          <div class="form-group">
-            <label for="adoption-dog-name">Cane interessato</label>
-            <input type="text" id="adoption-dog-name" class="form-control" readonly style="background-color: var(--light-gray); cursor: not-allowed;" />
-          </div>
-
-          <div class="form-group">
-            <label for="adoption-user-name">Il tuo Nome</label>
-            <input type="text" id="adoption-user-name" class="form-control" required />
-          </div>
-
-          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="form-group">
-              <label for="adoption-user-email">Email</label>
-              <input type="email" id="adoption-user-email" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label for="adoption-user-phone">Telefono</label>
-              <input type="tel" id="adoption-user-phone" class="form-control" required placeholder="Es. 3471234567" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="adoption-message">Messaggio per il Canile</label>
-            <textarea id="adoption-message" class="form-control" rows="4" required style="resize: vertical;"></textarea>
-          </div>
-
-          <div class="modal-footer" style="margin-top: 20px;">
-            <button type="button" class="btn btn-secondary btn-close-modal" onclick="closeModal('adoption-modal')">Annulla</button>
-            <button type="submit" class="btn btn-primary">Invia Richiesta</button>
-          </div>
-        </form>
-      </div>
+        <div class="form-group">
+          <label for="profile-location">Città / Provincia</label>
+          <input type="text" id="profile-location" class="form-control" placeholder="es. Milano, Italia" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('profile-modal')">Annulla</button>
+          <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- Application Script (Relative Path) -->
-    <script src="./app.js?v=1.0.1"></script>
-  </body>
+  <!-- Modal: Aggiungi / Modifica Cane -->
+  <div id="crud-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width:550px;">
+      <button class="modal-close-btn" onclick="closeModal('crud-modal')">×</button>
+      <div class="modal-header">
+        <h3 id="crud-modal-title">Nuovo Cane</h3>
+      </div>
+      <form id="crud-dog-form" onsubmit="handleCrudSubmit(event)">
+        <div class="form-group">
+          <label for="crud-dog-name">Nome del Cane</label>
+          <input type="text" id="crud-dog-name" class="form-control" placeholder="es. Rex" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crud-dog-breed">Razza</label>
+            <select id="crud-dog-breed" class="form-control" required>
+              <option value="golden-retriever">Golden Retriever</option>
+              <option value="border-collie">Border Collie</option>
+              <option value="french-bulldog">Bulldog Francese</option>
+              <option value="labrador-retriever">Labrador Retriever</option>
+              <option value="cocker-spaniel">Cocker Spaniel</option>
+              <option value="meticcio">Meticcio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crud-dog-provenienza">Provenienza / Location</label>
+            <input type="text" id="crud-dog-provenienza" class="form-control" placeholder="es. Roma (RM)" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crud-dog-eta">Età</label>
+            <input type="text" id="crud-dog-eta" class="form-control" placeholder="es. 2 Anni" required>
+          </div>
+          <div class="form-group">
+            <label for="crud-dog-sesso">Sesso</label>
+            <select id="crud-dog-sesso" class="form-control" required>
+              <option value="Maschio">Maschio</option>
+              <option value="Femmina">Femmina</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crud-dog-stato">Stato Adozione</label>
+            <select id="crud-dog-stato" class="form-control" required>
+              <option value="DISPONIBILE">Disponibile</option>
+              <option value="IN PROVA">In Prova</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crud-dog-tag">Tratto Caratteristico</label>
+            <select id="crud-dog-tag" class="form-control" required>
+              <option value="Affettuoso">Affettuoso</option>
+              <option value="Socievole">Socievole</option>
+              <option value="Energico">Energico</option>
+              <option value="Calmo">Calmo</option>
+              <option value="Giocherellone">Giocherellone</option>
+              <option value="Obbediente">Obbediente</option>
+              <option value="Protettivo">Protettivo</option>
+              <option value="Fedele">Fedele</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('crud-modal')">Annulla</button>
+          <button type="submit" class="btn btn-primary">Salva Cane</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Richiesta di Adozione -->
+  <div id="adoption-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px;">
+      <button class="modal-close-btn" onclick="closeModal('adoption-modal')">×</button>
+      <div class="modal-header">
+        <h3>Richiesta di Adozione</h3>
+        <p>Compila il modulo per metterti in contatto con la struttura.</p>
+      </div>
+      <form id="adoption-contact-form" onsubmit="handleAdoptionSubmit(event)">
+        <input type="hidden" id="adoption-dog-id" name="dog_id">
+        <div class="form-group">
+          <label for="adoption-dog-name">Cane interessato</label>
+          <input type="text" id="adoption-dog-name" class="form-control" readonly style="background-color:var(--light-gray); cursor:not-allowed;">
+        </div>
+        <div class="form-group">
+          <label for="adoption-user-name">Il tuo Nome</label>
+          <input type="text" id="adoption-user-name" class="form-control" required>
+        </div>
+        <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+          <div class="form-group">
+            <label for="adoption-user-email">Email</label>
+            <input type="email" id="adoption-user-email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="adoption-user-phone">Telefono</label>
+            <input type="tel" id="adoption-user-phone" class="form-control" required placeholder="Es. 3471234567">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="adoption-message">Messaggio per il Canile</label>
+          <textarea id="adoption-message" class="form-control" rows="4" required style="resize:vertical;"></textarea>
+        </div>
+        <div class="modal-footer" style="margin-top:20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('adoption-modal')">Annulla</button>
+          <button type="submit" class="btn btn-primary">Invia Richiesta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./app.js?v=1.0.1"></script>
+</body>
 </html>
